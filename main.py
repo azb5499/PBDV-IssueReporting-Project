@@ -26,6 +26,9 @@ db = SQLAlchemy(model_class=Base)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 db.init_app(app)
 
+app.config['SECRET_KEY'] = 'your_secret_key'
+boostrap = Bootstrap5(app)
+
 
 @app.route('/')
 def display_home():
