@@ -1,0 +1,21 @@
+ERD Relation Ships and Functional Requirement(Major Functionality)
+
+Issue reporting relationships.
+
+1. User to Student (One-to-One): Each user can be associated with at most one student record, identified by the UserId foreign key in the Student table.
+
+2. User to Staff (One-to-One): Similarly, each user can be associated with at most one staff record, identified by the UserId foreign key in the Staff table.
+
+3. User to Admin (One-to-One): Each user can be associated with at most one admin record, identified by the UserId foreign key in the Admin table.
+
+4. User to Technician (One-to-One): Each user can be associated with at most one technician record, identified by the UserId foreign key in the Technician table.
+
+5. Technician to JobCard (One-to-One): Each technician is associated with at most one job card, identified by the JobCardId foreign key in the Technician table.
+
+6. User to Fault (One-to-Many): Each user can log multiple faults, identified by the UserId foreign key in the Fault table.
+
+7. Fault to Upvote (One-to-Many): Each fault can have multiple upvotes, identified by the FaultId foreign key in the Upvote table.
+
+8. User to Upvote (One-to-Many): Each user can upvote multiple faults, identified by the UserId foreign key in the Upvote table.
+
+9. Technician to Task (One-to-Many): Each technician can be assigned multiple tasks, identified by the TechnicianId foreign key in the Task table.
