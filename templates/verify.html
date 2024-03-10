@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block title %}Verify{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/report_style.css') }}">
+{% endblock %}
+{% block content %}
+    {{ render_form(form) }}
+{% endblock %}

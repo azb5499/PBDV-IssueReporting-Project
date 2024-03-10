@@ -1,0 +1,97 @@
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+        .custom-navbar {
+            background-color: #bbd9f7;
+        }
+
+        .navbar-brand {
+            font-family: "Bebas Neue", Arial, sans-serif;
+            font-size: 30px;
+        }
+        body {
+            background-color: #FAF0DC;
+            color: black;
+            font-family: "Poppins", sans-serif;
+        }
+
+        .nav-item {
+            display: block;
+            color: #800000;
+            border-right: 1px solid transparent; /* Initially transparent border */
+            border-left: 1px solid transparent; /* Initially transparent border */
+
+        }
+
+         .navbar-nav .nav-item .nav-link {
+          transition: background-color 0.3s; /* Smooth transition effect */
+            }
+
+         .navbar-nav .nav-item:nth-child(1) .nav-link:hover {
+         background-color: #279EFF; /* blue */
+        }
+
+        .navbar-nav .nav-item:nth-child(2) .nav-link:hover {
+            background-color: #CD1818; /* red */
+        }
+
+        .navbar-nav .nav-item:nth-child(3) .nav-link:hover {
+            background-color: #5dbb63; /* green */
+        }
+
+        .navbar-nav .nav-item:nth-child(4) .nav-link:hover {
+            background-color: #fff700; /* yellow */
+        }
+
+        .navbar-nav .nav-item:nth-child(5) .nav-link:hover {
+            background-color: #b4d0ec; /* blue */
+        }
+
+              .btn-primary {
+        background-color: #3a5f3a;
+        border-color: #3a5f3a;
+        color: #FAF0DC;
+        font-family: "Bebas Neue", Arial, sans-serif;
+        letter-spacing: 2px; /* Adjust the value as needed */
+
+        }
+
+           .btn-primary:hover {
+        background-color: #65a765;
+        border-color: #3a5f3a;
+        color: #FAF0DC;
+        }
+
+        .btn-outline-secondary {
+        border-color: #FFFFFF;
+        color: #FFFFFF;
+        font-weight: bold; /* Add this line to make the text bold */
+        font-family: "Bebas Neue", Arial, sans-serif;
+        letter-spacing: 2px; /* Adjust the value as needed */
+
+
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #FAF0DC;
+        border-color: #3a5f3a;
+        color: #3a5f3a;
+    }
+
+    .serif-heading {
+    font-family: "Bebas Neue", Arial, sans-serif;
+    letter-spacing: 2px; /* Adjust the value as needed */
+    }
+
+    .background-image {
+    background-image: url('https://bereamail.co.za/wp-content/uploads/sites/49/2023/06/DUT-Steve-Biko-campus-e1687861287959.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* To make the background image fixed while scrolling */
+    height: 100vh; /* Adjust height as needed */
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
