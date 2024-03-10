@@ -1,9 +1,31 @@
 {% extends "base.html" %}
 {% from 'bootstrap5/form.html' import render_form %}
-{% block title %}Index{% endblock %}
+{% block title %}Register{% endblock %}
 {% block head %}
     {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/report_style.css') }}">
 {% endblock %}
 {% block content %}
-{{ render_form(form) }}
+    <div class="Container">
+        <form action="" method="post">
+            <h2>REGISTER</h2>
+            <div class="content">
+                 <div class="input-box">
+                    <label for="email">Email</label>
+                    <input id="email" type="text" placeholder="Enter Email" name="email" required>
+                </div>
+                <div class="input-box">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="Enter Password" name="password" required>
+                </div>
+                <div class="input-box">
+                    <label for="password_confirm">Confirm Password</label>
+                    <input id="password_confirm" type="password" placeholder="Re-enter Password" name="password_confirm" required>
+                </div>
+                <div class="button-container">
+                    <button class="btn btn-primary btn-lg px-4 me-md-2 fw-bold" type="submit">REGISTER</button>
+                </div>
+            </div>
+        </form>
+    </div>
 {% endblock %}

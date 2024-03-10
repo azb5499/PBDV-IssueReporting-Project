@@ -1,9 +1,34 @@
 {% extends "base.html" %}
 {% from 'bootstrap5/form.html' import render_form %}
-{% block title %}Index{% endblock %}
+{% block title %}Dashboard{% endblock %}
 {% block head %}
     {{ super() }}
+    <link rel="stylesheet" href="style.css">
 {% endblock %}
 {% block content %}
-{{ render_form(form) }}
+<div class="container">
+        <div class="row">
+            <div class= "col-md-4 serif-heading" style="padding-top: 60px;">
+            <h1>Welcome, poop</h1>
+
+        <!-- User Information -->
+            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Name: Username</p>
+            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Email: User Email</p>
+            <a href="{{ url_for('display_home') }}" style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Edit Profile</a>
+            <!-- Add more user details as needed -->
+        </div>
+
+        <div class="col-md-4 serif-heading" style="padding-top: 60px;">
+            <h2>Complaint Status</h2>
+            <!-- Add complaint status section here -->
+        </div>
+        <div class="col-md-4 serif-heading" style="padding-top: 60px;">
+            <h2>Submitted Complaints</h2>
+            <!-- Add view submitted complaints section here -->
+        </div>
+         <!-- Logout Button -->
+        <a href="{{ url_for('display_home') }}" style="font-family: 'Poppins', sans-serif;">Logout</a>
+
+    </div>
+</div>
 {% endblock %}
