@@ -28,6 +28,7 @@ app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
 otp = randint(000000, 999999)
 
+
 class Base(DeclarativeBase):
     pass
 
@@ -44,46 +45,51 @@ login_manager.init_app(app)
 class Role(db.Model):
     Role_ID = db.Column(db.Integer, primary_key=True)
     Role_Name = db.Column(db.String(50), nullable=False)
-    users = db.relationship('User', back_populates='role')  # Bidirectional relationship with User
+    user = db.relationship('User', backref='role')
 
 
 class User(UserMixin, db.Model):
     User_ID = db.Column(db.Integer, primary_key=True)
     Role_ID = db.Column(db.Integer, db.ForeignKey('role.Role_ID'), nullable=False)
-    role = db.relationship('Role', back_populates='users')  # Bidirectional relationship with Role
-    # Define other user fields here
+    students = db.relationship('Student', backref='user', uselist=False)
+    admins = db.relationship('Admin', backref='user', uselist=False)
+    technicians = db.relationship('Technician', backref='user', uselist=False)
+
+    def get_id(self):
+        return str(self.User_ID)
 
 
 class Student(db.Model):
     Student_ID = db.Column(db.Integer, primary_key=True)
-    User_ID = db.Column(db.Integer, db.ForeignKey('user.User_ID'), nullable=False)
+    User_ID = db.Column(db.Integer, db.ForeignKey('user.User_ID'), nullable=False, unique=True)
     Email = db.Column(db.String(100), nullable=False, unique=True)
     Password = db.Column(db.String(100), nullable=False)
-    user = db.relationship('User', back_populates='student')  # Bidirectional relationship with User
+
     # Define other student fields here
 
 
 class Admin(db.Model):
     Admin_ID = db.Column(db.Integer, primary_key=True)
-    User_ID = db.Column(db.Integer, db.ForeignKey('user.User_ID'), nullable=False)
+    User_ID = db.Column(db.Integer, db.ForeignKey('user.User_ID'), nullable=False, unique=True)
     First_name = db.Column(db.String(50), nullable=False)
     Last_name = db.Column(db.String(50), nullable=False)
     Password = db.Column(db.String(100), nullable=False)
     Email = db.Column(db.String(100), nullable=False, unique=True)
-    user = db.relationship('User', back_populates='admin')  # Bidirectional relationship with User
+    technicians = db.relationship('Technician', backref='admin')
+
     # Define other admin fields here
 
 
 class Technician(db.Model):
     Technician_ID = db.Column(db.Integer, primary_key=True)
-    User_ID = db.Column(db.Integer, db.ForeignKey('user.User_ID'), nullable=False)
+    User_ID = db.Column(db.Integer, db.ForeignKey('user.User_ID'), nullable=False, unique=True)
     Admin_ID = db.Column(db.Integer, db.ForeignKey('admin.Admin_ID'), nullable=False)
     First_name = db.Column(db.String(50), nullable=False)
     Last_name = db.Column(db.String(50), nullable=False)
     Phone_number = db.Column(db.String(20), nullable=False)
     Email = db.Column(db.String(100), nullable=False, unique=True)
     Job_description = db.Column(db.String(100), nullable=False)
-    user = db.relationship('User', back_populates='technician')  # Bidirectional relationship with User
+    faults = db.relationship('Fault', backref='Technician')
     # Define other technician fields here
 
 
@@ -93,6 +99,7 @@ class Campus(db.Model):
     Campus_name = db.Column(db.String(100), nullable=False)
     Blocks = db.Column(db.JSON, nullable=False, default=[])  # Storing block information in JSON format
     Campus_map_url = db.Column(db.String(200))
+    faults = db.relationship('Fault', backref='campus')
 
 
 class Fault(db.Model):
@@ -105,13 +112,12 @@ class Fault(db.Model):
     Upvotes = db.Column(db.JSON, nullable=False, default=[])  # Using JSON type for Upvotes
     Status = db.Column(db.String(50), nullable=False, default='In Progress')
     Technician_ID = db.Column(db.Integer, db.ForeignKey('technician.Technician_ID'), nullable=True)
-    technician = db.relationship('Technician')  # Bidirectional relationship with Technician
     fault_log = db.Column(db.String(100), nullable=True)
 
 
 @login_manager.user_loader
 def load_user(User_ID):
-    return User.query.get(User_ID)
+    return User.query.get(int(User_ID))
 
 
 @login_manager.user_loader
@@ -137,45 +143,51 @@ def display_login(user):
                 if check_password_hash(password=password, pwhash=student.Password):
                     logged_in_user = db.session.execute(db.select(User).where(User.User_ID == student.User_ID)).scalar()
                     login_user(logged_in_user)
-                    return redirect(url_for('display_student_dashboard'))
+                    return redirect(url_for('display_home'))
                     # this log in a user at this point
             else:
                 flash('User does not exist')
-                return redirect(url_for('display_student_registration'))
+                return redirect(url_for('display_home'))
         return render_template('login.html', form=form)
     elif user == '2':
         # this will be the Tech login action
-        email = form.email.data
-        password = form.password.data
-        technician = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
-        if technician:
-            if check_password_hash(password=password, pwhash=technician.Password):
-                logged_in_user = db.session.execute(db.select(User).where(User.User_ID == technician.User_ID)).scalar()
-                login_user(logged_in_user)
-                return redirect(url_for('display_technician_dashboard'))
-        else:
-            flash('User does not exist')
-            return redirect(url_for('display_login', user='2'))
+        if form.validate_on_submit():
+            email = form.email.data
+            password = form.password.data
+            technician = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
+            if technician:
+                if check_password_hash(password=password, pwhash=technician.Password):
+                    logged_in_user = db.session.execute(
+                        db.select(User).where(User.User_ID == technician.User_ID)).scalar()
+                    login_user(logged_in_user)
+                    return redirect(url_for('display_technician_dashboard'))
+            else:
+                flash('User does not exist')
+                return redirect(url_for('display_login', user='2'))
         return render_template('login.html', form=form)
     elif user == '3':
         # Admin login
-        email = form.email.data
-        password = form.password.data
-        admin = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
-        if admin:
-            if check_password_hash(password=password, pwhash=admin.Password):
-                logged_in_user = db.session.execute(db.select(User).where(User.User_ID == admin.User_ID)).scalar()
-                login_user(logged_in_user)
-                return redirect(url_for('display_admin_dashboard'))
-                # this log in a user at this point
-        else:
-            flash('User does not exist')
-            return redirect(url_for('display_login', user='3'))
+        if form.validate_on_submit():
+            email = form.email.data
+            password = form.password.data
+            print(5)
+            admin = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
+            if admin:
+                if admin.Password == 'admin123':
+                    logged_in_user = db.session.execute(db.select(User).where(User.User_ID == admin.User_ID)).scalar()
+                    login_user(logged_in_user)
+                    print(current_user.User_ID)
+                    return redirect(url_for('display_home'))
+                    # this log in a user at this point
+            else:
+                flash('User does not exist')
+                return redirect(url_for('display_login', user='3'))
+        return render_template('login.html', form=form)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def display_registration():
-    form = forms.Login()
+    form = forms.StudentRegistration()
     verify_form = forms.Login()
     if request.method == 'POST':
         if form.validate_on_submit():
@@ -288,7 +300,6 @@ def display_admin_dashboard(email: str):
 
 @app.route('/viewIssue', methods=['GET'])
 def display_issue():
-
     return 'View issue'
 
 
@@ -318,6 +329,5 @@ login_manager.login_message_category = "info"
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-
 
     app.run(debug=True)
