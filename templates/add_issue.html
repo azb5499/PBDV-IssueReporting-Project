@@ -12,7 +12,7 @@
     <text x="50%" y="50%" class="text" stroke="#C0F0EF" letter-spacing="2px" font-size="50px" font-weight="700" stroke-width="1" style="animation: textAnimate 5s infinite alternate; text-anchor: middle; dominant-baseline: middle;">
         ADD YOUR ISSUE
     </text>
-</svg>
+</svg>  <img id="campus_image" src="" alt="Campus Image">
         {{ render_form(form) }}
         <script>
         $(document).ready(function() {
@@ -24,6 +24,18 @@
                 $.each(blocks[selectedCampus], function(index, value) {
                     blockSelect.append('<option value="' + value + '">' + value + '</option>');
                 });
+            });
+        });
+
+            $(document).ready(function() {
+            // JavaScript code for dynamic behavior
+            $('#campus').change(function() {
+                // Handle change event of campus select field
+                var selectedCampus = $(this).val();
+                var campusImgDict = {{ campus_img_dict | tojson | safe }};
+                var campusImage = $('#campus_image');
+                // Set the src attribute of the image to the URL of the selected campus image
+                campusImage.attr('src', campusImgDict[selectedCampus]);
             });
         });
     </script>

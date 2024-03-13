@@ -329,7 +329,24 @@ def display_admin_dashboard(email: str):
 
 @app.route('/viewIssue', methods=['GET'])
 def display_issue():
-    return 'View issue'
+    issues = db.session.execute(db.select(Fault)).scalars()
+
+    def get_upvotes_length(obj):
+        return len(obj.Upvotes)
+
+    # Sort the list of objects based on the lengths of their 'upvotes' field
+    sorted_list = sorted(issues, key=get_upvotes_length, reverse=True)
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    return render_template('view_issue.html', faults=sorted_list, campus_names=campus_names)
+
+
+@app.route('/upvote_issue/<fault_ID>/<user_ID>')
+@login_required
+def upvote_issue(fault_id: int, user_id: int):
+    if current_user.Role_ID != 2:
+        flash('Only a student is allowed to escalate issues!')
+
+    return 'Issue upvote'
 
 
 @app.route('/addIssue', methods=['GET', 'POST'])
@@ -343,15 +360,14 @@ def display_add_issue():
     blocks = {campus.Campus_name: campus.Blocks for campus in get_campus_info()}
     form.campus.choices = [(campus, campus) for campus in campuses]
     form.block.choices = [(block, block) for block in blocks[campuses[0]]]
-
-
-
+    campus_img_dict = {campus.Campus_name: campus.Campus_map_url for campus in get_campus_info()}
     form.fault_type.choices = [("Electrical", "Electrical"), ("Plumbing", "Plumbing"), ("Civil", "Civil")]
-
+    print(campus_img_dict)
     print(1)
     if request.method == 'POST':
         print(2)
-        fault_entry = Fault(Campus_ID=(db.session.execute(db.select(Campus).where(Campus.Campus_name == form.campus.data)).scalar()).Campus_ID,
+        fault_entry = Fault(Campus_ID=(
+            db.session.execute(db.select(Campus).where(Campus.Campus_name == form.campus.data)).scalar()).Campus_ID,
                             Block=form.block.data,
                             Location=form.location.data,
                             Fault_Type=form.fault_type.data,
@@ -363,7 +379,7 @@ def display_add_issue():
         db.session.commit()
         return redirect(url_for('display_home'))
 
-    return render_template('add_issue.html', form=form,blocks=blocks)
+    return render_template('add_issue.html', form=form, blocks=blocks, campus_img_dict=campus_img_dict)
 
 
 @app.route('/forgotPassword', methods=['GET', 'POST'])

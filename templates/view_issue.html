@@ -8,21 +8,16 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-md-4 serif-heading" style="padding-top: 60px;">
-            <h1>Welcome, {{ user.name }}</h1>
-            <!-- User Information -->
-            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Name: {{ user.name }}</p>
-            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Email: {{ user.email }}</p>
-            <!-- Add more user details as needed -->
-        </div>
-
-        <div class="col-md-8 serif-heading" style="padding-top: 60px;">
-            <h2>View Issues</h2>
+        <div class="col-md-12 serif-heading" style="padding-top: 60px;">
+                   <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <text x="35%" y="50%" class="text" stroke="#C0F0EF" letter-spacing="2px" font-size="50px" font-weight="700" stroke-width="1" style="animation: textAnimate 5s infinite alternate; text-anchor: middle; dominant-baseline: middle;">
+        VIEW ISSUES
+    </text>
+</svg>
             <!-- Display table of issues -->
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Fault ID</th>
                         <th>Campus</th>
                         <th>Block</th>
                         <th>Location</th>
@@ -36,13 +31,12 @@
                 <tbody>
                     {% for fault in faults %}
                     <tr>
-                        <td>{{ fault.Fault_ID }}</td>
-                        <td>{{ fault.Campus_ID }}</td>
+                        <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
                         <td>{{ fault.Location }}</td>
                         <td>{{ fault.Description }}</td>
                         <td>{{ fault.Fault_Type }}</td>
-                        <td>{{ fault.Upvotes }}</td>
+                        <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Status }}</td>
                     </tr>
                     {% endfor %}
