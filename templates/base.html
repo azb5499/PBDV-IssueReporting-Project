@@ -24,7 +24,7 @@
                     <a class="nav-link active" aria-current="page" href="{{ url_for('display_home') }}">HOME</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">REPORT ISSUE</a>
+                    <a class="nav-link" href="{{ url_for('display_add_issue') }}">REPORT ISSUE</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#" aria-current="page">VIEW ISSUES</a>
@@ -53,8 +53,11 @@
         </div>
     </div>
 </nav>
-        {% block content %}
-        {% endblock %}
+
+            {% block content %}
+            {% endblock %}
+
+
     </div>
     <div id="footer">
         <div class="container">

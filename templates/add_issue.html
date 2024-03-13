@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block title %}Log In{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='report_style.css') }}">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %}
+{% block content %}
+    <div class="Container">
+        <h2>ADD YOUR ISSUE</h2>
+        {{ render_form(form) }}
+        <script>
+        $(document).ready(function() {
+            $('#campus').change(function() {
+                var selectedCampus = $(this).val();
+                var blocks = JSON.parse('{{ blocks | tojson | safe }}');
+                var blockSelect = $('#block');
+                blockSelect.empty();
+                $.each(blocks[selectedCampus], function(index, value) {
+                    blockSelect.append('<option value="' + value + '">' + value + '</option>');
+                });
+            });
+        });
+    </script>
+
+    </div>
+{% endblock %}

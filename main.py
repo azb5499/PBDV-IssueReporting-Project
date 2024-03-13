@@ -339,29 +339,31 @@ def display_add_issue():
         flash('Action not allowed!')
         return redirect(url_for('display_home'))
     form = forms.ReportIssue()
-    campus_info = get_campus_info()
-    campuses = [campus.Campus_name for campus in campus_info]
-    blocks = {campus.Campus_name: campus.Blocks for campus in campus_info}
+    campuses = [campus.Campus_name for campus in get_campus_info()]
+    blocks = {campus.Campus_name: campus.Blocks for campus in get_campus_info()}
     form.campus.choices = [(campus, campus) for campus in campuses]
     form.block.choices = [(block, block) for block in blocks[campuses[0]]]
 
+
+
     form.fault_type.choices = [("Electrical", "Electrical"), ("Plumbing", "Plumbing"), ("Civil", "Civil")]
 
+    print(1)
     if request.method == 'POST':
-        if form.validate_on_submit():
-            fault_entry = Fault(Campus_ID=form.campus.data,
-                                Block=form.block.data,
-                                Location=form.location.data,
-                                Fault_Type=form.fault_type.data,
-                                Upvotes=[current_user.User_ID],
-                                Status="Pending",
-                                Description=form.issue_summary.data)
+        print(2)
+        fault_entry = Fault(Campus_ID=(db.session.execute(db.select(Campus).where(Campus.Campus_name == form.campus.data)).scalar()).Campus_ID,
+                            Block=form.block.data,
+                            Location=form.location.data,
+                            Fault_Type=form.fault_type.data,
+                            Upvotes=[current_user.User_ID],
+                            Status="Pending",
+                            Description=form.issue_summary.data)
 
-            db.session.add(fault_entry)
-            db.session.commit()
-            return redirect(url_for('display_home'))
+        db.session.add(fault_entry)
+        db.session.commit()
+        return redirect(url_for('display_home'))
 
-    return render_template('add_issue.html', form=form)
+    return render_template('add_issue.html', form=form,blocks=blocks)
 
 
 @app.route('/forgotPassword', methods=['GET', 'POST'])

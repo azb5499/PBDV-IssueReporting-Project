@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block title %}Dashboard{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .carousel-item {
+            text-align: center;
+        }
+        /* Customizing carousel control arrows */
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            filter: invert(100%); /* Invert color to make black */
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-3 serif-heading" style="padding-top: 80px;">
+            <h1>Welcome, User</h1>
+            <!-- User Information -->
+            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Name: Username</p>
+            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Email: User Email</p>
+            <a href="{{ url_for('display_home') }}" style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Edit Profile</a>
+            <!-- Add more user details as needed -->
+        </div>
+        <div class="col-md-9 serif-heading" style="padding-top: 80px;">
+            <div id="dashboardCarousel" class="carousel slide">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <h2>Complaint Status</h2>
+                        <!-- Add complaint status section here -->
+                    </div>
+                    <div class="carousel-item">
+                        <h2>Submitted Complaints</h2>
+                        <!-- Add view submitted complaints section here -->
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Logout Button -->
+    <a href="{{ url_for('display_home') }}" style="font-family: 'Poppins', sans-serif;">Logout</a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var carousel = new bootstrap.Carousel(document.getElementById('dashboardCarousel'), {
+            interval: false
+        });
+    });
+</script>
+{% endblock %}

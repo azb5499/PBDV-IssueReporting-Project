@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block title %}View Issues{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="style.css">
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4 serif-heading" style="padding-top: 60px;">
+            <h1>Welcome, {{ user.name }}</h1>
+            <!-- User Information -->
+            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Name: {{ user.name }}</p>
+            <p style="font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Email: {{ user.email }}</p>
+            <!-- Add more user details as needed -->
+        </div>
+
+        <div class="col-md-8 serif-heading" style="padding-top: 60px;">
+            <h2>View Issues</h2>
+            <!-- Display table of issues -->
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fault ID</th>
+                        <th>Campus</th>
+                        <th>Block</th>
+                        <th>Location</th>
+                        <th>Description</th>
+                        <th>Fault Type</th>
+                        <th>Upvotes</th>
+                        <th>Status</th>
+                        <!-- Add more columns as needed -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fault in faults %}
+                    <tr>
+                        <td>{{ fault.Fault_ID }}</td>
+                        <td>{{ fault.Campus_ID }}</td>
+                        <td>{{ fault.Block }}</td>
+                        <td>{{ fault.Location }}</td>
+                        <td>{{ fault.Description }}</td>
+                        <td>{{ fault.Fault_Type }}</td>
+                        <td>{{ fault.Upvotes }}</td>
+                        <td>{{ fault.Status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+{% endblock %}
