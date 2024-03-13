@@ -111,6 +111,8 @@ h2 {
     color: white;
 }
 
+/* NEW CODE ADDED - title animations */
+
 /* Define the animation */
 @keyframes slideIn {
     0% {
@@ -122,3 +124,16 @@ h2 {
         opacity: 1; /* End with opacity 1 */
     }
 }
+
+@keyframes textAnimate {
+                0% {
+                    stroke-dasharray: 0 50%;
+                    stroke-dashoffset: 20%;
+                    fill: white; /* Change fill color to white */
+                }
+                100% {
+                    stroke-dasharray: 50% 0;
+                    stroke-dashoffset: -20%;
+                    fill: hsla(189, 68%, 75%, 0%);
+                }
+            }

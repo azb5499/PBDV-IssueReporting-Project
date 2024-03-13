@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
 {% block content %}
-<div class="container">
+<div class="container ">
 <div class="container my-5" style="background-image: url('https://bereamail.co.za/wp-content/uploads/sites/49/2023/06/DUT-Steve-Biko-campus-e1687861287959.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
     <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
         <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
@@ -29,60 +29,55 @@
             <p class="lead">We are committed to providing an efficient and user-friendly platform for reporting maintenance issues on campus. Our goal is to ensure a safe and functional learning environment by streamlining the reporting and resolution process.</p>
         </div>
     </div>
-    <div class="col-md-5">
-        <div class="row">
-            <div class="col-lg-8 offset-lg-1">
-                <div style="padding-top: 60px;">
-                <img src="https://limblecmms.com/wp-content/uploads/What-Is-A-Maintenance-Report-And-How-To-Ensure-Its-Accuracy.jpg" class="img-fluid rounded-lg-3" alt="Maintenance">
-            </div>
+   <div class="col-md-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-1">
+            <div style="padding-top: 60px;">
+                <img src="https://limblecmms.com/wp-content/uploads/What-Is-A-Maintenance-Report-And-How-To-Ensure-Its-Accuracy.jpg" class="img-fluid rounded-lg-3" alt="Maintenance" style="box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);">
             </div>
         </div>
     </div>
 </div>
-
 
 <hr class="featurette-divider">
 <!-- Features Container -->
 <div class="container marketing">
     <div class="row">
         <div style="padding-top: 60px;">
-        <h1 class="display-4 fw-bold lh-1 text-body-emphasis serif-heading">Platform Perks</h1>
+            <h1 class="display-4 fw-bold lh-1 text-body-emphasis serif-heading">Platform Perks</h1>
         </div>
-        <div class="col-lg-4" style="padding: 50px; text-align: center;"> <!-- Updated to center align SVG -->
-            <div style="padding-bottom: 30px;"> <!-- Add padding around the SVG -->
+        <div class="col-lg-4" style="padding: 50px; text-align: center;">
+            <div style="padding-bottom: 30px; padding-top:10px; border: 2px solid #007bff; box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); border-radius: 10px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="bi bi-person-check" viewBox="0 0 16 16">
                     <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
                     <path d="M8.256 14a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
                 </svg>
-            </div>
+
             <h2>USER-FRIENDLY</h2>
-            <p></p>
             <p>Our application features a user-friendly reporting form, making it easy for students and faculty to report maintenance issues.</p>
         </div>
-        <div class="col-lg-4" style="padding: 50px; text-align: center;"> <!-- Updated to center align SVG -->
-            <div style="padding-bottom: 30px;"> <!-- Add padding around the SVG -->
+        </div>
+        <div class="col-lg-4" style="padding: 50px; text-align: center;">
+            <div style=" padding-top: 30px; border: 2px solid #28a745; box-shadow: 0 0 10px rgba(40, 167, 69, 0.5); border-radius: 10px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="bi bi-graph-up-arrow" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"/>
                 </svg>
-            </div>
-            <h2>PROGRESS TRACKING</h2>
-            <p></p>
+            <h2>TRACK YOUR PROGRESS</h2>
             <p>Track the progress of reported issues and stay informed about the resolution process.</p>
         </div>
-        <div class="col-lg-4" style="padding: 50px; text-align: center;"> <!-- Updated to center align SVG -->
-            <div style="padding-bottom: 30px;"> <!-- Add padding around the SVG -->
+        </div>
+        <div class="col-lg-4" style="padding: 50px; text-align: center;">
+            <div style="padding-bottom: 30px; padding-top: 50px; border: 2px solid #dc3545; box-shadow: 0 0 10px rgba(220, 53, 69, 0.5); border-radius: 10px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="bi bi-app-indicator" viewBox="0 0 16 16">
                     <path d="M5.5 2A3.5 3.5 0 0 0 2 5.5v5A3.5 3.5 0 0 0 5.5 14h5a3.5 3.5 0 0 0 3.5-3.5V8a.5.5 0 0 1 1 0v2.5a4.5 4.5 0 0 1-4.5 4.5h-5A4.5 4.5 0 0 1 1 10.5v-5A4.5 4.5 0 0 1 5.5 1H8a.5.5 0 0 1 0 1z"/>
                     <path d="M16 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
                 </svg>
-            </div>
             <h2>UPDATES</h2>
-            <p></p>
             <p>Receive timely updates on reported issues and their status.</p>
+        </div>
         </div>
     </div>
 </div>
-
 
 <hr class="featurette-divider">
 <!-- Features Download App -->
@@ -113,7 +108,9 @@
         </div>
     </div>
 </div>
-
-
 </div>
+</div>
+
+
+
 {% endblock %}
