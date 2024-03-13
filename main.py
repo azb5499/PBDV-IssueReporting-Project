@@ -188,36 +188,60 @@ def display_login(user):
 @app.route('/register', methods=['GET', 'POST'])
 def display_registration():
     form = forms.StudentRegistration()
-    verify_form = forms.Login()
+
     if request.method == 'POST':
         if form.validate_on_submit():
             email = form.email.data
-            session['email'] = email
-            session['password'] = form.password.data
+            user_exists = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
+            if user_exists:
+                flash('This User exists already!')
+                return redirect(url_for('display_registration'))
+
             if validate_student_email(email):
+                session['email'] = email
+                session['password'] = form.password.data
                 msg = Message(subject='OTP', sender='dutmaintenance@gmail.com', recipients=[email])
-                msg.body = str(otp)
+                msg.body = "Use this One-Time-Pin to verify your email: \n" + str(otp)
                 mail.send(msg)
-                return render_template('verify.html', form=verify_form)
+
+                return redirect(url_for('verify'))
             else:
                 flash("Email not valid", "error")
-        elif verify_form.validate_on_submit():
-            if 'email' in session and 'password' in session:
-                email = session.get('email')
-                password = session.get('password')
-                user_record = User(Role_ID=2)
-                db.session.add(user_record)
-                db.session.commit()
-                last_inserted_user = User.query.order_by(desc(User.User_ID)).first()
-                User_ID = last_inserted_user.User_ID
-                student_record = Student(User_ID=User_ID,
-                                         Email=email,
-                                         Password=password)
-                db.session.add(student_record)
-                db.session.commit()
-                flash('Registration Successful!')
-                return redirect(url_for('display_home'))
+
+        if 'email' in session and 'password' in session:
+            form.email.data = session['email']
+            form.password.data = session['password']
+
     return render_template('register.html', form=form)
+
+
+@app.route('/verify', methods=['GET', 'POST'])
+def verify():
+    verify_form = forms.Verify()
+
+    if verify_form.validate_on_submit():
+        user_otp = verify_form.OTP.data
+        if otp == int(user_otp):
+            # Retrieve form data from session
+            email = session.get('email')
+            password = session.get('password')
+            user_record = User(Role_ID=2)
+            db.session.add(user_record)
+            db.session.commit()
+            last_inserted_user = User.query.order_by(desc(User.User_ID)).first()
+            student_record = Student(User_ID=last_inserted_user.User_ID,
+                                     Email=email,
+                                     Password=generate_password_hash(password, salt_length=8))
+            db.session.add(student_record)
+            db.session.commit()
+            # Now you can use the email and password to complete the registration process
+            flash('Email verified', 'success')
+            return redirect(url_for('display_login', user=1))  # Redirect to the home page after verification
+        else:
+            flash('Incorrect OTP, please try again', 'error')
+            return redirect(url_for('verify'))  # Redirect back to the verification page
+
+    return render_template('verify.html', form=verify_form)
 
 
 def validate_student_email(email):
@@ -228,6 +252,11 @@ def validate_student_email(email):
     if year > current_year:
         return False
     return True
+
+
+def get_campus_info():
+    campus = db.session.execute(db.select(Campus)).scalars()
+    return campus
 
 
 @app.route('/register_technician', methods=['GET', 'POST'])
@@ -306,13 +335,44 @@ def display_issue():
 @app.route('/addIssue', methods=['GET', 'POST'])
 @login_required
 def display_add_issue():
-    return 'Create issue'
+    if current_user.Role_ID != 2:
+        flash('Action not allowed!')
+        return redirect(url_for('display_home'))
+    form = forms.ReportIssue()
+    campus_info = get_campus_info()
+    campuses = [campus.Campus_name for campus in campus_info]
+    blocks = {campus.Campus_name: campus.Blocks for campus in campus_info}
+    form.campus.choices = [(campus, campus) for campus in campuses]
+    form.block.choices = [(block, block) for block in blocks[campuses[0]]]
+
+    form.fault_type.choices = [("Electrical", "Electrical"), ("Plumbing", "Plumbing"), ("Civil", "Civil")]
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            fault_entry = Fault(Campus_ID=form.campus.data,
+                                Block=form.block.data,
+                                Location=form.location.data,
+                                Fault_Type=form.fault_type.data,
+                                Upvotes=[current_user.User_ID],
+                                Status="Pending",
+                                Description=form.issue_summary.data)
+
+            db.session.add(fault_entry)
+            db.session.commit()
+            return redirect(url_for('display_home'))
+
+    return render_template('add_issue.html', form=form)
 
 
 @app.route('/forgotPassword', methods=['GET', 'POST'])
 @app.route('/resetPassword', methods=['GET', 'POST'])
 def display_reset_password():
     return 'Reset password'
+
+
+@app.route('/login_redirect')
+def do_redirect():
+    return redirect(url_for('display_login', user=2))
 
 
 @app.route("/logout")
@@ -322,7 +382,7 @@ def logout():
     return redirect(url_for('display_home'))
 
 
-login_manager.login_view = "dislpay_login"
+login_manager.login_view = "do_redirect"
 login_manager.login_message = u"Please login to complete this action"
 login_manager.login_message_category = "info"
 

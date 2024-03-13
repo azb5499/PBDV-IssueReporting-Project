@@ -3,8 +3,11 @@
 {% block title %}Verify{% endblock %}
 {% block head %}
     {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/report_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='report_style.css') }}">
 {% endblock %}
 {% block content %}
+<div class="Container">
+    <h2>CHECK YOUR EMAIL</h2>
     {{ render_form(form) }}
+</div>
 {% endblock %}

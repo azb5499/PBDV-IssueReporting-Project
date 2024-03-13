@@ -1,5 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, SelectField
+from wtforms.fields.numeric import IntegerField
+from wtforms.validators import EqualTo
 
 
 class Login(FlaskForm):
@@ -11,6 +13,10 @@ class Login(FlaskForm):
 class StudentRegistration(FlaskForm):
     email = EmailField('Email', validators=[validators.Email(), validators.DataRequired()])
     password = PasswordField('Password', validators=[validators.DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        validators.DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
     submit = SubmitField('Submit')
 
 
@@ -27,11 +33,14 @@ class TechnicianRegistration(FlaskForm):
 
 
 class ReportIssue(FlaskForm):
-    campus_choices = [('A', 'Campus A'), ('B', 'Campus B'), ('C', 'Campus C'), ('D', 'Campus D'), ('E', 'Campus E')]
-
-    campus = SelectField("Campus", choices=campus_choices, validators=[validators.DataRequired()])
-    block = StringField("Block",validators=[validators.DataRequired()])
+    campus = SelectField("Campus", validators=[validators.DataRequired()])
+    block = SelectField("Block", validators=[validators.DataRequired()])
+    location = StringField("Fault Location",validators=[validators.DataRequired()])
     issue_summary = StringField("Issue Summary", validators=[validators.DataRequired()])
+    fault_type = SelectField("Fault type",validators=[validators.DataRequired()])
     submit = SubmitField('Submit')
 
 
+class Verify(FlaskForm):
+    OTP = IntegerField('OTP', validators=[validators.DataRequired()])
+    submit = SubmitField('Submit')
