@@ -7,7 +7,7 @@ from flask_gravatar import Gravatar
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Text, ForeignKey, JSON, desc
+from sqlalchemy import Integer, String, Text, ForeignKey, JSON, desc, func
 from functools import wraps
 from flask import session
 import re
@@ -340,13 +340,48 @@ def display_issue():
     return render_template('view_issue.html', faults=sorted_list, campus_names=campus_names)
 
 
-@app.route('/upvote_issue/<fault_ID>/<user_ID>')
+@app.route('/upvote_issue/<fault_id>', methods=['GET', 'POST'])
 @login_required
-def upvote_issue(fault_id: int, user_id: int):
+def upvote_issue(fault_id):
     if current_user.Role_ID != 2:
         flash('Only a student is allowed to escalate issues!')
+        return redirect('display_home')
+    print(1)
 
-    return 'Issue upvote'
+    try:
+        # Fetch the issue record using .first() for single result
+        issue_record = db.session.query(Fault).filter(Fault.Fault_ID == fault_id).first()
+        if not issue_record:
+            print(2)
+            flash('Fault record does not exist')
+            return redirect(url_for('display_home'))
+
+        print(3)
+        if current_user.User_ID in issue_record.Upvotes:
+            flash('Cannot upvote twice!')
+            return redirect(url_for('display_home'))
+
+        print(4)
+        # Ensure Upvotes is mutable (list) within JSON
+        if not issue_record.Upvotes:
+            issue_record.Upvotes = []
+        new_votes = issue_record.Upvotes.copy()  # Avoid modifying original data
+        new_votes.append(current_user.User_ID)
+
+        # Update using jsonb_set (adjust for your database)
+        db.session.execute(
+            func.update(Fault)
+            .where(Fault.Fault_ID == fault_id)
+            .values(Upvotes=func.jsonb_set(Fault.Upvotes, '$.Upvotes', new_votes))
+        )
+        db.session.commit()
+        flash('Successfully escalated!')
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        flash('An error occurred while upvoting')
+        return redirect(url_for('display_home'))
+
+    return redirect(url_for('display_home'))
 
 
 @app.route('/addIssue', methods=['GET', 'POST'])

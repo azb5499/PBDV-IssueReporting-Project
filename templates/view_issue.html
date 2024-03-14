@@ -36,13 +36,13 @@
                         <td>{{ fault.Location }}</td>
                         <td>{{ fault.Description }}</td>
                         <td>{{ fault.Fault_Type }}</td>
-                        <td>{{ fault.Upvotes | length }}</td>
+                        <td>{{ fault.Upvotes | length }} : <button type="button" class="btn btn-primary" onclick="{{ url_for('upvote_issue',fault_id=fault.Fault_ID) }}">Primary</button></td>
                         <td>{{ fault.Status }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
+            </div>
     </div>
   </div>
 {% endblock %}
