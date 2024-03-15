@@ -24,6 +24,7 @@
                         <th>Description</th>
                         <th>Fault Type</th>
                         <th>Upvotes</th>
+                        <th>Date submitted</th>
                         <th>Status</th>
                         <!-- Add more columns as needed -->
                     </tr>
@@ -36,7 +37,8 @@
                         <td>{{ fault.Location }}</td>
                         <td>{{ fault.Description }}</td>
                         <td>{{ fault.Fault_Type }}</td>
-                        <td>{{ fault.Upvotes | length }} : <button type="button" class="btn btn-primary" onclick="{{ url_for('upvote_issue',fault_id=fault.Fault_ID) }}">Primary</button></td>
+                        <td>{{ fault.Upvotes | length }} : <a class="btn btn-primary" href="{{ url_for('upvote_issue',fault_id=fault.Fault_ID) }}">Primary</a></td>
+                        <td>{{ fault.Date_submitted }}</td>
                         <td>{{ fault.Status }}</td>
                     </tr>
                     {% endfor %}

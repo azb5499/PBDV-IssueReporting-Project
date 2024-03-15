@@ -1,4 +1,4 @@
-from flask import Flask, abort, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_mail import Mail, Message
 from random import *
 from flask_bootstrap import Bootstrap5
@@ -6,14 +6,14 @@ from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Text, ForeignKey, JSON, desc, func
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import desc
 from functools import wraps
 from flask import session
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlalchemy.testing.schema import mapped_column
+utc_timezone = timezone.utc
 from werkzeug.security import generate_password_hash, check_password_hash
 import forms
 
@@ -86,6 +86,7 @@ class Technician(db.Model):
     Admin_ID = db.Column(db.Integer, db.ForeignKey('admin.Admin_ID'), nullable=False)
     First_name = db.Column(db.String(50), nullable=False)
     Last_name = db.Column(db.String(50), nullable=False)
+    Residing_area = db.Column(db.String(70), nullable=False)
     Phone_number = db.Column(db.String(20), nullable=False)
     Email = db.Column(db.String(100), nullable=False, unique=True)
     Job_description = db.Column(db.String(100), nullable=False)
@@ -109,6 +110,7 @@ class Fault(db.Model):
     Location = db.Column(db.String(100))
     Description = db.Column(db.Text, nullable=False)
     Fault_Type = db.Column(db.String(50), nullable=False)
+    Date_submitted = db.Column(db.DateTime, nullable=False, default=datetime.now(utc_timezone))
     Upvotes = db.Column(db.JSON, nullable=False, default=[])  # Using JSON type for Upvotes
     Status = db.Column(db.String(50), nullable=False, default='In Progress')
     Technician_ID = db.Column(db.Integer, db.ForeignKey('technician.Technician_ID'), nullable=True)
@@ -117,12 +119,14 @@ class Fault(db.Model):
 
 @login_manager.user_loader
 def load_user(User_ID):
-    return User.query.get(int(User_ID))
+    return db.session.get(User, User_ID)
 
 
-@login_manager.user_loader
-def load_user(User_ID):
-    return User.query.get(User_ID)
+def get_username_from_email(email):
+    # Split the email address at the "@" symbol
+    parts = email.split("@")
+    # Return the part before the "@" symbol
+    return parts[0]
 
 
 @app.route('/')
@@ -143,7 +147,7 @@ def display_login(user):
                 if check_password_hash(password=password, pwhash=student.Password):
                     logged_in_user = db.session.execute(db.select(User).where(User.User_ID == student.User_ID)).scalar()
                     login_user(logged_in_user)
-                    return redirect(url_for('display_home'))
+                    return redirect(url_for('display_student_dashboard'))
                     # this log in a user at this point
             else:
                 flash('User does not exist')
@@ -272,6 +276,7 @@ def display_technician_registration():
         phone_number = form.phone_number.data
         email = form.email.data
         job_desc = form.occupation.data
+        residing_area = form.residing_area.data
         user = User(Role_ID=3)
         db.session.add(user)
         db.session.commit()
@@ -281,6 +286,7 @@ def display_technician_registration():
                                 Last_name=last_name,
                                 Phone_number=phone_number,
                                 Email=email,
+                                Residing_area=residing_area,
                                 Job_description=job_desc,
                                 Admin_ID=admin_record.Admin_ID,
                                 User_ID=last_inserted_user.User_ID
@@ -292,25 +298,33 @@ def display_technician_registration():
     return render_template('register.html', form=form)
 
 
-@app.route('/student_dashboard/<email>')
+@app.route('/student_dashboard')
 @login_required
-def display_student_dashboard(email: str):
-    student = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
+def display_student_dashboard():
+    if current_user.Role_ID != 2:
+        flash('Route access not allowed!')
+        return redirect(url_for('display_home'))
+
+    student = db.session.execute(db.select(Student).where(Student.User_ID == current_user.User_ID)).scalar()
     student_id = student.Student_ID
-    all_faults = db.session.execute(db.select(Fault))
+    all_faults = db.session.execute(db.select(Fault)).scalars()
     upvoted_faults = []
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     for fault in all_faults:
         if student_id in fault.Upvotes:
             upvoted_faults.append(fault)
-    return render_template('dashboard.html', faults=upvoted_faults)
+
+    student_info = {"username": get_username_from_email(student.Email),
+                    "email": student.Email}
+    return render_template('student_dashboard.html', faults=upvoted_faults, student_info=student_info,campus_names=campus_names)
 
 
-@app.route('/technician_dashboard/<email>')
+@app.route('/technician_dashboard')
 @login_required
-def display_technician_dashboard(email: str):
-    technician = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
+def display_technician_dashboard():
+    technician = db.session.execute(db.select(Technician).where(Technician.User_ID == current_user.User_ID)).scalar()
     technician_id = technician.Technician_ID
-    all_faults = db.session.execute(db.select(Fault))
+    all_faults = db.session.execute(db.select(Fault)).scalars()
     upvoted_faults = []
     for fault in all_faults:
         if technician_id == fault.Technician_ID:
@@ -318,10 +332,10 @@ def display_technician_dashboard(email: str):
     return render_template('dashboard.html', faults=upvoted_faults)
 
 
-@app.route('/admin_dashboard/<email>')
+@app.route('/admin_dashboard')
 @login_required
-def display_admin_dashboard(email: str):
-    admin = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
+def display_admin_dashboard():
+    admin = db.session.execute(db.select(Admin).where(Admin.User_ID == current_user.User_ID)).scalar()
     admin_id = admin.Admin_ID
 
     return render_template('dashboard.html')
@@ -350,7 +364,7 @@ def upvote_issue(fault_id):
 
     try:
         # Fetch the issue record using .first() for single result
-        issue_record = db.session.query(Fault).filter(Fault.Fault_ID == fault_id).first()
+        issue_record = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
         if not issue_record:
             print(2)
             flash('Fault record does not exist')
@@ -366,14 +380,11 @@ def upvote_issue(fault_id):
         if not issue_record.Upvotes:
             issue_record.Upvotes = []
         new_votes = issue_record.Upvotes.copy()  # Avoid modifying original data
-        new_votes.append(current_user.User_ID)
+        student = db.session.execute(db.select(Student).where(Student.User_ID == current_user.User_ID)).scalar()
+        new_votes.append(student.Student_ID)
 
         # Update using jsonb_set (adjust for your database)
-        db.session.execute(
-            func.update(Fault)
-            .where(Fault.Fault_ID == fault_id)
-            .values(Upvotes=func.jsonb_set(Fault.Upvotes, '$.Upvotes', new_votes))
-        )
+        issue_record.Upvotes = new_votes
         db.session.commit()
         flash('Successfully escalated!')
     except Exception as e:
@@ -397,8 +408,8 @@ def display_add_issue():
     form.block.choices = [(block, block) for block in blocks[campuses[0]]]
     campus_img_dict = {campus.Campus_name: campus.Campus_map_url for campus in get_campus_info()}
     form.fault_type.choices = [("Electrical", "Electrical"), ("Plumbing", "Plumbing"), ("Civil", "Civil")]
-    print(campus_img_dict)
-    print(1)
+    student = db.session.execute(db.select(Student).where(Student.User_ID == current_user.User_ID)).scalar()
+    student_id = student.Student_ID
     if request.method == 'POST':
         print(2)
         fault_entry = Fault(Campus_ID=(
@@ -406,7 +417,7 @@ def display_add_issue():
                             Block=form.block.data,
                             Location=form.location.data,
                             Fault_Type=form.fault_type.data,
-                            Upvotes=[current_user.User_ID],
+                            Upvotes=[student_id],
                             Status="Pending",
                             Description=form.issue_summary.data)
 
@@ -425,7 +436,7 @@ def display_reset_password():
 
 @app.route('/login_redirect')
 def do_redirect():
-    return redirect(url_for('display_login', user=2))
+    return redirect(url_for('display_login', user=1))
 
 
 @app.route("/logout")

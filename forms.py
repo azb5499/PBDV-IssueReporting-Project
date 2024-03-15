@@ -29,6 +29,7 @@ class TechnicianRegistration(FlaskForm):
     phone_number = StringField("Phone Number", validators=[
         validators.Regexp(r'^\+?27?\d{9}$', message="Invalid South African phone number")
     ])
+    residing_area = SelectField('Residing City',choices=[('Durban','Durban'),('Pietermaritzburg','Pietermaritzburg')],validators=[validators.DataRequired()])
     submit = SubmitField('Submit')
 
 
