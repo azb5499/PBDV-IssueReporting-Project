@@ -177,11 +177,11 @@ def display_login(user):
             print(5)
             admin = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
             if admin:
-                if admin.Password == 'admin123':
+                if password == 'admin123':
                     logged_in_user = db.session.execute(db.select(User).where(User.User_ID == admin.User_ID)).scalar()
                     login_user(logged_in_user)
                     print(current_user.User_ID)
-                    return redirect(url_for('display_home'))
+                    return redirect(url_for('display_admin_dashboard'))
                     # this log in a user at this point
             else:
                 flash('User does not exist')
@@ -316,7 +316,8 @@ def display_student_dashboard():
 
     student_info = {"username": get_username_from_email(student.Email),
                     "email": student.Email}
-    return render_template('student_dashboard.html', faults=upvoted_faults, student_info=student_info,campus_names=campus_names)
+    return render_template('student_dashboard.html', faults=upvoted_faults, student_info=student_info,
+                           campus_names=campus_names)
 
 
 @app.route('/technician_dashboard')
@@ -336,9 +337,13 @@ def display_technician_dashboard():
 @login_required
 def display_admin_dashboard():
     admin = db.session.execute(db.select(Admin).where(Admin.User_ID == current_user.User_ID)).scalar()
-    admin_id = admin.Admin_ID
-
-    return render_template('dashboard.html')
+    technicians = db.session.execute(db.select(Technician)).scalars()
+    all_issues = db.session.execute(db.select(Fault)).scalars()
+    admin_info = {"username": get_username_from_email(admin.Email),
+                  "email": admin.Email}
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    return render_template('admin_dashboard.html', campus_names=campus_names, faults=all_issues,
+                           technicians=technicians, admin_info=admin_info)
 
 
 @app.route('/viewIssue', methods=['GET'])
