@@ -215,7 +215,7 @@
                 0% {
                     stroke-dasharray: 0 50%;
                     stroke-dashoffset: 20%;
-                    fill: white; /* Change fill color to white */
+                    fill: black; /* Change fill color to white */
                 }
                 100% {
                     stroke-dasharray: 50% 0;
@@ -223,3 +223,17 @@
                     fill: hsla(189, 68%, 75%, 0%);
                 }
             }
+
+
+h3 {
+color: #8db3ff;
+}
+
+.fade-in-section {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.fade-in-section.visible {
+    opacity: 1;
+}

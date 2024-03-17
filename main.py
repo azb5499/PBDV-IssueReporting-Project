@@ -515,7 +515,7 @@ def forgot_password(role):
         elif role == '3':
             user = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
         else:
-            flash('404,route does not exist','error')
+            flash('404,route does not exist', 'error')
             return redirect(url_for('forgot_password', role=role))
 
         if user:
@@ -530,7 +530,7 @@ def forgot_password(role):
             # Redirect to OTP verification page
             return redirect(url_for('verify_otp'))
         else:
-            flash('User does not exist!','error')
+            flash('User does not exist!', 'error')
             return redirect(url_for('forgot_password', role=role))
     return render_template('forgot_password.html', form=form, role=role)
 
@@ -568,11 +568,11 @@ def reset_password():
         role_id = user.Role_ID
         if role_id == 1:
             user = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
-        elif role_id ==2:
+        elif role_id == 2:
             user = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
         elif role_id == 3:
             user = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
-        user.Password = generate_password_hash(password,salt_length=8)
+        user.Password = generate_password_hash(password, salt_length=8)
         db.session.commit()
         session.pop('reset_password_otp')
         flash('Password reset successful. You can now login with your new password.', 'success')
