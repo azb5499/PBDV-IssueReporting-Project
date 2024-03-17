@@ -59,7 +59,7 @@
                     <tr>
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
-                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_pending_fault',fault_id=fault.Fault_ID) }}">more</a></td>
+                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_active_tech_faults',fault_id=fault.Fault_ID) }}">more</a></td>
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>

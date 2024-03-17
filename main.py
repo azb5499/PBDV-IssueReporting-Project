@@ -46,6 +46,7 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 boostrap = Bootstrap5(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+ckeditor = CKEditor(app)
 
 
 class Role(db.Model):
@@ -580,17 +581,45 @@ def display_completed_fault_admin(fault_id):
     if current_user.Role_ID != 1:
         flash('NOT ALLOWED')
         return redirect(url_for('display_home'))
-
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
     technician = db.session.execute(
         db.select(Technician).where(Technician.Technician_ID == fault.Technician_ID)).scalar()
-    return render_template('admin_completed_fault.html', fault=fault, technician=technician)
+    return render_template('admin_completed_fault.html', fault=fault, technician=technician, campus_names=campus_names)
 
 
-@app.route('/view_active_tech_faults/<fault_id>')
+@app.route('/view_active_tech_faults/<fault_id>', methods=['GET', 'POST'])
 @login_required
 def display_active_tech_faults(fault_id):
-    pass
+    if current_user.Role_ID != 3:
+        flash('NOT ALLOWED!')
+        return redirect(url_for('display_home'))
+    form = forms.IssueResolvedForm()
+    print(form.validate_on_submit())
+    if form.validate_on_submit():
+        # try:
+        #     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+        #     fault.fault_log = form.editor_text.data
+        #     fault.Date_completed = datetime.now(timezone.utc).date
+        #     fault.Status = 'Completed'
+        #     db.session.commit()
+        #     flash('Successful!')
+        #     return redirect(url_for('display_technician_dashboard'))
+        #
+        # except:
+        #     flash('An error occurred')
+        #     return redirect(url_for('display_home'))
+        fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+        fault.fault_log = form.editor_text.data
+        fault.Date_completed = datetime.now(timezone.utc).date
+        fault.Status = 'Completed'
+        db.session.commit()
+        flash('Successful!')
+        return redirect(url_for('display_technician_dashboard'))
+
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    return render_template('issue_descriptions.html', form=form, fault=fault, campus_names=campus_names)
 
 
 @app.route('/viewIssue', methods=['GET'])
