@@ -27,10 +27,12 @@
                     <div class="carousel-item active">
                         <h2>Admin Control</h2>
                         <!-- Add complaint status section here, this page will have a contents page explaining what each slide on the carousel provides a content page for all the information on the other carousal pages,  -->
-                        <p>To go to <a href="#pending-issues">Pending Issues</a>, click here.</p>
-                        <p>To go to <a href="#active-issues">Active Issues</a>, click here.</p>
-                        <p>To go to <a href="#completed-issues">Completed Issues</a>, click here.</p>
-                        <p>To go to <a href="#technician-info">Technician Information</a>, click here.</p>
+                        <div class="p-tags" style="font-family: 'Poppins', sans-serif">
+                        <p>To go to <a href="#" onclick="slideToCarouselItem(1)">Pending Issues</a>, click here.</p>
+                        <p>To go to <a href="#" onclick="slideToCarouselItem(2)">Active Issues</a>, click here.</p>
+                        <p>To go to <a href="#" onclick="slideToCarouselItem(3)">Completed Issues</a>, click here.</p>
+                        <p>To go to <a href="#" onclick="slideToCarouselItem(4)">Technician Information</a>, click here.</p>
+                    </div>
                     </div>
                     <div class="carousel-item" id="pending-issues">
                         <h2>Pending Reports</h2>
@@ -40,12 +42,12 @@
                     <tr>
                         <th>Campus</th>
                         <th>Block</th>
-                        <th>Location</th>
                         <th>Description</th>
                         <th>Fault Type</th>
                         <th>Upvotes</th>
                         <th>Date submitted</th>
                         <th>Status</th>
+                        <th>Priority</th>
                         <!-- Add more columns as needed -->
                     </tr>
                 </thead>
@@ -55,12 +57,12 @@
                     <tr>
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
-                        <td>{{ fault.Location }}</td>
-                        <td>{{ fault.Description }}</td>
+                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_pending_fault',fault_id=fault.Fault_ID) }}">more</a></td>
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>
                         <td>{{ fault.Status }}</td>
+                        <td>{{ fault.Priority }}</td>
                     </tr>
                     {% endif %}
                     {% endfor %}
@@ -194,5 +196,9 @@
             interval: false
         });
     });
+    function slideToCarouselItem(index) {
+    var carousel = new bootstrap.Carousel(document.getElementById('dashboardCarousel'));
+    carousel.to(index); // Slide to the specified carousel item
+}
 </script>
 {% endblock %}

@@ -89,8 +89,8 @@
             <!-- Register & Log In -->
             <div class="section fade-in-section">
                 <h3>Register & Log In</h3>
-                <p><a href="#">Register</a> using their dut4life email and a chosen password upon initial app use.</p>
-                <p><a href="#">Log In</a> to your account to access the app features.</p>
+                <p><a href="{{ url_for('display_registration') }}">Register</a> using their dut4life email and a chosen password upon initial app use.</p>
+                <p><a href="{{ url_for('display_login',user=1) }}">Log In</a> to your account to access the app features.</p>
             </div>
 
 
@@ -99,7 +99,7 @@
             <!-- Report Issues -->
             <div class="section fade-in-section">
                 <h3>Report Issues</h3>
-                <p>Once logged in, submit your issue via the "<a href="#">Report Issue</a>" tab, specifying campus, block, and exact location.</p>
+                <p>Once logged in, submit your issue via the "<a href="{{ url_for('display_add_issue') }}">Report Issue</a>" tab, specifying campus, block, and exact location.</p>
                 <p>Provide a brief summary and select an appropriate issue type from the dropdown.</p>
                 <p>Once you click submit, you're good to go! Our maintenance team will promptly address the reported issue.</p>
             </div>
@@ -109,7 +109,7 @@
             <!-- Upvote -->
             <div class="section">
                 <h3>Upvote</h3>
-                <p>You can explore the list of current via our "<a href="#">View Issues</a>" tab.</p>
+                <p>You can explore the list of current via our "<a href="{{ url_for('display_issue') }}">View Issues</a>" tab.</p>
                 <p>You have the option to upvote issues they encounter, prioritizing them for resolution.</p>
                 <p>Ensure that you are logged in to utilize our upvoting system.</p>
                 <div style="text-align: center; padding-top: 60px;">
@@ -127,7 +127,7 @@
         <!-- Content for technician -->
         <div class="section fade-in-section">
             <h3>Log In</h3>
-            <p><a href="#">Log In</a>  with your technician credentials to access to the technician dashboard where you can view assigned issues, update their status, and communicate with users.</p>
+            <p><a href="{{ url_for('display_login',user=2) }}">Log In</a>  with your technician credentials to access to the technician dashboard where you can view assigned issues, update their status, and communicate with users.</p>
         </div>
 
         <hr class="featurette-divider">
@@ -162,7 +162,7 @@
         <!-- Content for admin -->
         <div class="section fade-in-section">
             <h3>Log In</h3>
-            <p><a href="#">Log In</a>  as an admin to get access to the admin dashboard where you can manage users, view and resolve reported issues, and perform administrative tasks.</p>
+            <p><a href="{{ url_for('display_login',user=3) }}">Log In</a>  as an admin to get access to the admin dashboard where you can manage users, view and resolve reported issues, and perform administrative tasks.</p>
         </div>
 
         <hr class="featurette-divider">

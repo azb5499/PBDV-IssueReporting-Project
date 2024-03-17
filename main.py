@@ -1,8 +1,4 @@
-import smtplib
 import string
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from random import choice, shuffle
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_mail import Mail, Message
 from random import *
@@ -18,7 +14,6 @@ from flask import session
 import re
 from datetime import datetime, timezone
 
-utc_timezone = timezone.utc
 from werkzeug.security import generate_password_hash, check_password_hash
 import forms
 
@@ -127,7 +122,7 @@ class Fault(db.Model):
     Location = db.Column(db.String(100))
     Description = db.Column(db.Text, nullable=False)
     Fault_Type = db.Column(db.String(50), nullable=False)
-    Date_submitted = db.Column(db.DateTime, nullable=False, default=datetime.now(utc_timezone))
+    Date_submitted = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc).date)
     Upvotes = db.Column(db.JSON, nullable=False, default=[])  # Using JSON type for Upvotes
     Status = db.Column(db.String(50), nullable=False, default='In Progress')
     Technician_ID = db.Column(db.Integer, db.ForeignKey('technician.Technician_ID'), nullable=True)
@@ -146,15 +141,32 @@ def get_username_from_email(email):
     return parts[0]
 
 
-def check_gmail_email(email):
-    # Regular expression to match a Gmail email address
-    gmail_regex = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
+def calculate_priority(upvotes, issue_date):
+    issue_date = datetime.strptime(str(issue_date), "%Y-%m-%d %H:%M:%S")
+    current_date = datetime.now(timezone.utc)
+    days_difference = (current_date.date() - issue_date.date()).days
+    priority_score = 0
 
-    # Check if the email matches the Gmail regex pattern
-    if re.match(gmail_regex, email):
-        return True
+    if days_difference < 5:
+        priority_score += 1
+    elif days_difference < 10:
+        priority_score += 2
     else:
-        return False
+        priority_score += 3
+
+    if len(upvotes) > 10:
+        priority_score += 3
+    elif len(upvotes) > 5:
+        priority_score += 2
+
+    if priority_score <= 2:
+        priority = 'low'
+    elif priority_score <= 4:
+        priority = 'medium'
+    else:
+        priority = 'high'
+
+    return priority
 
 
 def generate_password():
@@ -405,6 +417,10 @@ def display_admin_dashboard():
     admin = db.session.execute(db.select(Admin).where(Admin.User_ID == current_user.User_ID)).scalar()
     technicians = db.session.execute(db.select(Technician)).scalars()
     all_issues = db.session.execute(db.select(Fault)).scalars()
+    all_issues = [issue for issue in all_issues]
+    for i in range(0, len(all_issues)):
+        all_issues[i].Priority = calculate_priority(upvotes=all_issues[i].Upvotes,
+                                                    issue_date=all_issues[i].Date_submitted)
     admin_info = {"username": get_username_from_email(admin.Email),
                   "email": admin.Email}
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
@@ -413,6 +429,22 @@ def display_admin_dashboard():
     print(all_admins_dict)
     return render_template('admin_dashboard.html', campus_names=campus_names, faults=all_issues,
                            technicians=technicians, admin_info=admin_info, all_admins_dict=all_admins_dict)
+
+
+@app.route('/view_pending/<fault_id>')
+@login_required
+def display_pending_fault(fault_id):
+    form = forms.AssignTechnician()
+    fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    technicians = db.session.execute(db.select(Technician).where(Technician.Job_description == fault.Fault_Type)).scalars()
+    form.technicians.choices = [(t, t) for t in technicians]
+    fault.Priority = calculate_priority(upvotes=fault.Upvotes, issue_date=fault.Date_submitted)
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    if fault:
+        return render_template('pending_issue.html', fault=fault, campus_names=campus_names,form=form)
+    else:
+        flash('Invalid Fault!')
+        return render_template('display_home')
 
 
 @app.route('/viewIssue', methods=['GET'])
@@ -424,6 +456,9 @@ def display_issue():
 
     # Sort the list of objects based on the lengths of their 'upvotes' field
     sorted_list = sorted(issues, key=get_upvotes_length, reverse=True)
+    for i in range(0, len(sorted_list)):
+        sorted_list[i].Priority = calculate_priority(upvotes=sorted_list[i].Upvotes,
+                                                     issue_date=sorted_list[i].Date_submitted)
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     return render_template('view_issue.html', faults=sorted_list, campus_names=campus_names)
 
