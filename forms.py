@@ -64,8 +64,7 @@ class ResetPassword(FlaskForm):
     submit = SubmitField('Submit')
 
 
-
 class AssignTechnician(FlaskForm):
-    technicians = SelectField("Available Technicians",validators=[validators.DataRequired()])
-    confirm = BooleanField('Confirm')
+    technicians = SelectField("Available Technicians", validators=[validators.DataRequired()])
+    confirm = BooleanField('Confirm', validators=[validators.DataRequired()])
     submit = SubmitField("Add technician")

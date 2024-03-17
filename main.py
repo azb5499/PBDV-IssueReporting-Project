@@ -26,7 +26,11 @@ app.config["MAIL_PASSWORD"] = 'gbhevmvnqlqskvgd'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
-otp = randint(000000, 999999)
+
+
+def get_otp() -> int:
+    otp = randint(000000, 999999)
+    return otp
 
 
 class Base(DeclarativeBase):
@@ -207,6 +211,8 @@ def display_home():
 @app.route('/login/<user>', methods=['GET', 'POST'])
 def display_login(user):
     form = forms.Login()
+    if current_user.is_active:
+        flash('User already logged in!')
     if user == '1':
         # Student login
         if form.validate_on_submit():
@@ -263,7 +269,9 @@ def display_login(user):
 @app.route('/register', methods=['GET', 'POST'])
 def display_registration():
     form = forms.StudentRegistration()
-
+    if current_user.is_active:
+        flash('User already logged in!')
+        return redirect(url_for('display_home'))
     if request.method == 'POST':
         if form.validate_on_submit():
             email = form.email.data
@@ -273,6 +281,8 @@ def display_registration():
                 return redirect(url_for('display_login', user=1))
 
             if validate_student_email(email):
+                otp = get_otp()
+                session['otp'] = otp
                 session['email'] = email
                 session['password'] = form.password.data
                 msg = Message(subject='OTP', sender='dutmaintenance@gmail.com', recipients=[email])
@@ -296,6 +306,7 @@ def verify():
 
     if verify_form.validate_on_submit():
         user_otp = verify_form.OTP.data
+        otp = session.pop('otp')
         if otp == int(user_otp):
             # Retrieve form data from session
             email = session.get('email')
@@ -401,16 +412,24 @@ def display_student_dashboard():
 @app.route('/technician_dashboard')
 @login_required
 def display_technician_dashboard():
+    if current_user.Role_ID !=3:
+        flash('NOT ALLOWED!')
+        return redirect(url_for('display_home'))
     technician = db.session.execute(db.select(Technician).where(Technician.User_ID == current_user.User_ID)).scalar()
     technician_id = technician.Technician_ID
     tech_info = {"username": f'{technician.First_name} {technician.Last_name}',
                  "email": technician.Email}
     all_faults = db.session.execute(db.select(Fault)).scalars()
+    all_issues = [issue for issue in all_faults]
+    for i in range(0, len(all_issues)):
+        all_issues[i].Priority = calculate_priority(upvotes=all_issues[i].Upvotes,
+                                                    issue_date=all_issues[i].Date_submitted)
     upvoted_faults = []
-    for fault in all_faults:
+    for fault in all_issues:
         if technician_id == fault.Technician_ID:
             upvoted_faults.append(fault)
-    return render_template('tech_dashboard.html', faults=upvoted_faults, tech_info=tech_info)
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    return render_template('tech_dashboard.html', faults=upvoted_faults, tech_info=tech_info, all_faults=all_faults,campus_names=campus_names)
 
 
 @app.route('/admin_dashboard')
@@ -460,6 +479,22 @@ def display_pending_fault(fault_id):
         return render_template('display_home')
 
 
+@app.route('/delete_post/<fault_id>', methods=['GET', 'POST'])
+@login_required
+def delete_fault(fault_id):
+    if current_user.Role_ID != 1:
+        flash('NOT ALLOWED!', 'error')
+        return redirect(url_for('display_home'))
+    if request.method == "GET":
+        fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+        db.session.delete(fault)
+        db.session.commit()
+        flash('Removal successful')
+        return redirect(url_for('display_admin_dashboard'))
+    else:
+        return redirect(url_for('display_admin_dashboard'))
+
+
 @app.route('/view_active/<fault_id>')
 @login_required
 def display_active_fault_admin(fault_id):
@@ -486,9 +521,9 @@ def display_completed_fault_admin(fault_id):
     return render_template('admin_active_fault.html', fault=fault, technician=technician)
 
 
-@app.route('/view_active_tech_faults')
+@app.route('/view_active_tech_faults/<fault_id>')
 @login_required
-def display_active_tech_faults():
+def display_active_tech_faults(fault_id):
     pass
 
 
@@ -599,6 +634,7 @@ def forgot_password(role):
             return redirect(url_for('forgot_password', role=role))
 
         if user:
+            otp = get_otp()
             # Store OTP and email in session
             session['reset_password_email'] = email
             session['reset_password_otp'] = otp

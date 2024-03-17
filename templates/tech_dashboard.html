@@ -14,45 +14,111 @@
             <div class="user-details">
                 <h1>Welcome, User</h1>
                 <!-- User Information -->
-                <p>Name: Username</p>
-                <p>Email: User Email</p>
+                <p>Name: {{ tech_info.username }}</p>
+                <p>Email: {{ tech_info.email }}</p>
                 
                 <a href="{{ url_for('display_home') }}">Edit Profile</a>
                 <p></p>
                 <!-- Add more user details as needed -->
-                <a href="{{ url_for('display_home') }}" class="logout-link">Logout</a>
+                <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
             </div>
         </div>
         <div class="col-md-9 serif-heading" style="padding-top: 80px;">
             <div id="dashboardCarousel" class="carousel slide">
                 <div class="carousel-inner">
                     <div class="carousel-item active">
-                        <h2>Complaint Status</h2>
+                        <h2>Technician Control</h2>
+                        <div class="p-tags" style="font-family: 'Poppins', sans-serif">
+                        <p>To go to <a href="#" onclick="slideToCarouselItem(1)">Assigned faults</a>, click here.</p>
+                        <p>To go to <a href="#" onclick="slideToCarouselItem(2)">Fault History</a>, click here.</p>
                         <!-- Add complaint status section here -->
                     </div>
-                    <div class="carousel-item">
-                        <h2>Task Management</h2>
-                        <!-- Add view Task Management section here -->
-                    </div>
+
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
+                    <div class="carousel-item">
+                        <h2>Assigned Faults</h2>
+                        <!-- Add view Task Management section here -->
+                        <table class="table">
+                <thead>
+                    <tr>
+                        <th>Campus</th>
+                        <th>Block</th>
+                        <th>Description</th>
+                        <th>Fault Type</th>
+                        <th>Upvotes</th>
+                        <th>Date submitted</th>
+                        <th>Priority</th>
+
+                        <!-- Add more columns as needed -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fault in faults %}
+                    <tr>
+                        <td>{{ campus_names[fault.Campus_ID] }}</td>
+                        <td>{{ fault.Block }}</td>
+                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_pending_fault',fault_id=fault.Fault_ID) }}">more</a></td>
+                        <td>{{ fault.Fault_Type }}</td>
+                        <td>{{ fault.Upvotes | length }}</td>
+                        <td>{{ fault.Date_submitted }}</td>
+                        <td>{{ fault.Priority }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+                         <a href="#" onclick="slideToCarouselItem(0)">Back to Technician Control</a>
+                    </div>
+                    <div class="carousel-item">
+                        <h2>Fault history</h2>
+                        <!-- Add view Task Management section here -->
+                        <table class="table">
+                <thead>
+                    <tr>
+                        <th>Campus</th>
+                        <th>Block</th>
+                        <th>Description</th>
+                        <th>Fault Type</th>
+                        <th>Upvotes</th>
+                        <th>Date submitted</th>
+                        <th>Priority</th>
+
+                        <!-- Add more columns as needed -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fault in faults %}
+
+                    <tr>
+                        <td>{{ campus_names[fault.Campus_ID] }}</td>
+                        <td>{{ fault.Block }}</td>
+                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_pending_fault',fault_id=fault.Fault_ID) }}">more</a></td>
+                        <td>{{ fault.Fault_Type }}</td>
+                        <td>{{ fault.Upvotes | length }}</td>
+                        <td>{{ fault.Date_submitted }}</td>
+                        <td>{{ fault.Priority }}</td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+                         <a href="#" onclick="slideToCarouselItem(0)">Back to Technician Control</a>
+                    </div>
+
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
         var carousel = new bootstrap.Carousel(document.getElementById('dashboardCarousel'), {
             interval: false
         });
     });
+    function slideToCarouselItem(index) {
+    var carousel = new bootstrap.Carousel(document.getElementById('dashboardCarousel'));
+    carousel.to(index); // Slide to the specified carousel item
+}
 </script>
+</div>
 {% endblock %}

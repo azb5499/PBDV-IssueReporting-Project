@@ -3,6 +3,7 @@
 {% block title %}Home{% endblock %}
 {% block head %}
     {{ super() }}
+
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
 {% block content %}
@@ -217,6 +218,7 @@
     </div>
 </div>
 </div>
+
 <script>
     // Function to check if an element is in the viewport
     function isInViewport(element) {

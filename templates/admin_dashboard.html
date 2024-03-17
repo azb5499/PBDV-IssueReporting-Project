@@ -47,6 +47,7 @@
                         <th>Upvotes</th>
                         <th>Date submitted</th>
                         <th>Priority</th>
+                        <th></th>
                         <!-- Add more columns as needed -->
                     </tr>
                 </thead>
@@ -61,11 +62,13 @@
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>
                         <td>{{ fault.Priority }}</td>
+                        <td><a href="{{ url_for('delete_fault',fault_id=fault.Fault_ID) }}">Remove</a></td>
                     </tr>
                     {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
+                        <a href="#" onclick="slideToCarouselItem(0)">Back to Admin Control</a>
 
                     </div>
                     <div class="carousel-item" id="active-issues">
@@ -87,7 +90,7 @@
                 </thead>
                 <tbody>
                     {% for fault in faults %}
-                    {% if fault.Status == 'Active': %}
+                    {% if fault.Status == 'In Progress': %}
                     <tr>
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
@@ -102,11 +105,13 @@
                     {% endfor %}
                 </tbody>
             </table>
+                        <a href="#" onclick="slideToCarouselItem(0)">Back to Admin Control</a>
                     </div>
                     <div class="carousel-item" id="completed-issues">
                         <h2>Completed Reports</h2>
                         <!-- Add section here, a list of all completed reports -->
                         <table class="table">
+
                 <thead>
                     <tr>
                         <th>Campus</th>
@@ -137,6 +142,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+                        <a href="#" onclick="slideToCarouselItem(0)">Back to Admin Control</a>
                     </div>
                     <div class="carousel-item" id="technician-info">
                         <h2>Technician</h2>
@@ -170,17 +176,10 @@
                     {% endfor %}
                 </tbody>
             </table>
+                        <a href="#" onclick="slideToCarouselItem(0)">Back to Admin Control</a>
                         <a href="{{ url_for('display_technician_registration') }}" class="btn btn-primary">Add technician</a>
                     </div>
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
             </div>
         </div>
     </div>
