@@ -258,6 +258,9 @@ def display_login(user):
                     login_user(logged_in_user)
                     return redirect(url_for('display_student_dashboard'))
                     # this log in a user at this point
+                else:
+                    flash('incorrect password')
+                    return redirect(url_for('display_login', user=1, role=2))
             else:
                 flash('User does not exist')
                 return redirect(url_for('display_login', user=1, role=2))
@@ -274,6 +277,9 @@ def display_login(user):
                         db.select(User).where(User.User_ID == technician.User_ID)).scalar()
                     login_user(logged_in_user)
                     return redirect(url_for('display_technician_dashboard'))
+                else:
+                    flash('incorrect password')
+                    return redirect(url_for('display_login', user=2, role=2))
             else:
                 flash('User does not exist')
                 return redirect(url_for('display_login', user='2', role=3))
@@ -293,6 +299,9 @@ def display_login(user):
                     print(current_user.User_ID)
                     return redirect(url_for('display_admin_dashboard'))
                     # this log in a user at this point
+                else:
+                    flash('incorrect password')
+                    return redirect(url_for('display_login', user=3, role=2))
             else:
                 flash('User does not exist')
                 return redirect(url_for('display_login', user='3', role=1))
@@ -597,29 +606,33 @@ def display_active_tech_faults(fault_id):
     form = forms.IssueResolvedForm()
     print(form.validate_on_submit())
     if form.validate_on_submit():
-        # try:
-        #     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
-        #     fault.fault_log = form.editor_text.data
-        #     fault.Date_completed = datetime.now(timezone.utc).date
-        #     fault.Status = 'Completed'
-        #     db.session.commit()
-        #     flash('Successful!')
-        #     return redirect(url_for('display_technician_dashboard'))
-        #
-        # except:
-        #     flash('An error occurred')
-        #     return redirect(url_for('display_home'))
-        fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
-        fault.fault_log = form.editor_text.data
-        fault.Date_completed = datetime.now(timezone.utc).date
-        fault.Status = 'Completed'
-        db.session.commit()
-        flash('Successful!')
-        return redirect(url_for('display_technician_dashboard'))
+        try:
+            fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+            fault.fault_log = form.editor_text.data
+            fault.Date_completed = datetime.now(timezone.utc)
+            fault.Status = 'Completed'
+            db.session.commit()
+            flash('Successful!')
+            return redirect(url_for('display_technician_dashboard'))
+        except:
+            flash('An error occurred')
+            return redirect(url_for('display_home'))
 
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
     return render_template('issue_descriptions.html', form=form, fault=fault, campus_names=campus_names)
+
+
+@app.route('/view_completed_tech_fault/<fault_id>', methods=['GET'])
+@login_required
+def display_completed_tech_fault(fault_id):
+    if current_user.Role_ID != 3:
+        flash('NOT ALLOWED!')
+        return redirect(url_for('display_home'))
+
+    fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    return render_template('completed_tech_fault.html', fault=fault, campus_names=campus_names)
 
 
 @app.route('/viewIssue', methods=['GET'])

@@ -9,15 +9,6 @@
     {% endblock %}
 </head>
 <body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-     {% if messages %}
-         {% for category, message in messages %}
-             <div class="flash-message-{{ category }}">
-                 {{ message }}
-             </div>
-         {% endfor %}
-     {% endif %}
- {% endwith %}
     <div id="content">
         <nav class="navbar navbar-expand-lg custom-navbar">
     <div class="container-fluid">
@@ -72,12 +63,26 @@
         </div>
     </div>
 </nav>
+                <!-- Flash message block -->
+        <div class="messages" id="flash-message">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="flash-message-{{ category }} alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        </div>
 
-            {% block content %}
-            {% endblock %}
-
-
+        {% block content %}
+        {% endblock %}
     </div>
+
     <div id="footer">
         <div class="container">
   <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
@@ -101,16 +106,15 @@
     </div>
     <!-- Bootstrap JavaScript bundle link -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script>
-     // Automatically hide flash messages after 5 seconds
-     document.addEventListener('DOMContentLoaded', function() {
-         var flashMessages = document.querySelectorAll('.flash-message');
-         flashMessages.forEach(function(message) {
-             setTimeout(function() {
-                 message.style.display = 'none';
-             }, 5000);
-         });
-     });
- </script>
+   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const flashMessage = document.getElementById('flash-message');
+
+        setTimeout(function() {
+            flashMessage.style.display = 'none';
+        }, 5000); // 5000 milliseconds = 5 seconds
+    });
+</script>
+
 </body>
 </html>

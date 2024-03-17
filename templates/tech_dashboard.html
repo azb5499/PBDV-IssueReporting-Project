@@ -18,7 +18,11 @@
                 <p>Email: {{ tech_info.email }}</p>
 
                 <h3>Weather Forecast:</h3>
-                <p>{{ weather_forecast }}</p>
+                <ol>
+                {% for i in range(0, len(weather_forecast)) %}
+                    <li>{{ weather_forecast[i] }}</li>
+                {% endfor %}
+                </ol>
 
                 <a href="{{ url_for('display_home') }}">Edit Profile</a>
                 <p></p>
@@ -56,6 +60,7 @@
                 </thead>
                 <tbody>
                     {% for fault in faults %}
+                    {% if fault.Status == 'In Progress' %}
                     <tr>
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
@@ -65,6 +70,7 @@
                         <td>{{ fault.Date_submitted }}</td>
                         <td>{{ fault.Priority }}</td>
                     </tr>
+                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
@@ -81,25 +87,24 @@
                         <th>Description</th>
                         <th>Fault Type</th>
                         <th>Upvotes</th>
-                        <th>Date submitted</th>
-                        <th>Priority</th>
+                        <th>Date completed</th>
+
 
                         <!-- Add more columns as needed -->
                     </tr>
                 </thead>
                 <tbody>
                     {% for fault in faults %}
-
+                    {% if fault.Status == 'Completed' %}
                     <tr>
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
-                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_pending_fault',fault_id=fault.Fault_ID) }}">more</a></td>
+                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_completed_tech_fault',fault_id=fault.Fault_ID) }}">more</a></td>
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
-                        <td>{{ fault.Date_submitted }}</td>
-                        <td>{{ fault.Priority }}</td>
+                        <td>{{ fault.Date_completed }}</td>
                     </tr>
-
+                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
