@@ -403,12 +403,14 @@ def display_student_dashboard():
 def display_technician_dashboard():
     technician = db.session.execute(db.select(Technician).where(Technician.User_ID == current_user.User_ID)).scalar()
     technician_id = technician.Technician_ID
+    tech_info = {"username": f'{technician.First_name} {technician.Last_name}',
+                 "email": technician.Email}
     all_faults = db.session.execute(db.select(Fault)).scalars()
     upvoted_faults = []
     for fault in all_faults:
         if technician_id == fault.Technician_ID:
             upvoted_faults.append(fault)
-    return render_template('tech_dashboard.html', faults=upvoted_faults)
+    return render_template('tech_dashboard.html', faults=upvoted_faults, tech_info=tech_info)
 
 
 @app.route('/admin_dashboard')
@@ -431,20 +433,63 @@ def display_admin_dashboard():
                            technicians=technicians, admin_info=admin_info, all_admins_dict=all_admins_dict)
 
 
-@app.route('/view_pending/<fault_id>')
+@app.route('/view_pending/<fault_id>', methods=['GET', 'POST'])
 @login_required
 def display_pending_fault(fault_id):
+    if current_user.Role_ID != 1:
+        flash('Not allowed!')
+        return redirect(url_for('display_home'))
     form = forms.AssignTechnician()
+    if request.method == 'POST':
+        fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+        fault.Technician_ID = form.technicians.data
+        fault.Status = 'In Progress'
+        db.session.commit()
+        flash('Fault updated successfully!')
+        return redirect(url_for('display_admin_dashboard'))
     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
-    technicians = db.session.execute(db.select(Technician).where(Technician.Job_description == fault.Fault_Type)).scalars()
-    form.technicians.choices = [(t, t) for t in technicians]
+    technicians = db.session.execute(
+        db.select(Technician).where(Technician.Job_description == fault.Fault_Type)).scalars()
+    form.technicians.choices = [(t.Technician_ID, f'{t.First_name} {t.Last_name}:{t.Email}') for t in technicians]
     fault.Priority = calculate_priority(upvotes=fault.Upvotes, issue_date=fault.Date_submitted)
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     if fault:
-        return render_template('pending_issue.html', fault=fault, campus_names=campus_names,form=form)
+        return render_template('pending_issue.html', fault=fault, campus_names=campus_names, form=form)
     else:
         flash('Invalid Fault!')
         return render_template('display_home')
+
+
+@app.route('/view_active/<fault_id>')
+@login_required
+def display_active_fault_admin(fault_id):
+    if current_user.Role_ID != 1:
+        flash('NOT ALLOWED')
+        return redirect(url_for('display_home'))
+
+    fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    technician = db.session.execute(
+        db.select(Technician).where(Technician.Technician_ID == fault.Technician_ID)).scalar()
+    return render_template('admin_active_fault.html', fault=fault, technician=technician)
+
+
+@app.route('/view_completed/<fault_id>')
+@login_required
+def display_completed_fault_admin(fault_id):
+    if current_user.Role_ID != 1:
+        flash('NOT ALLOWED')
+        return redirect(url_for('display_home'))
+
+    fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    technician = db.session.execute(
+        db.select(Technician).where(Technician.Technician_ID == fault.Technician_ID)).scalar()
+    return render_template('admin_active_fault.html', fault=fault, technician=technician)
+
+
+@app.route('/view_active_tech_faults')
+@login_required
+def display_active_tech_faults():
+    pass
 
 
 @app.route('/viewIssue', methods=['GET'])
@@ -468,7 +513,7 @@ def display_issue():
 def upvote_issue(fault_id):
     if current_user.Role_ID != 2:
         flash('Only a student is allowed to escalate issues!')
-        return redirect('display_home')
+        return redirect(url_for('display_home'))
     print(1)
 
     try:

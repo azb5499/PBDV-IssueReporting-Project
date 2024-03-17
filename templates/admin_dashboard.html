@@ -46,7 +46,6 @@
                         <th>Fault Type</th>
                         <th>Upvotes</th>
                         <th>Date submitted</th>
-                        <th>Status</th>
                         <th>Priority</th>
                         <!-- Add more columns as needed -->
                     </tr>
@@ -61,7 +60,6 @@
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>
-                        <td>{{ fault.Status }}</td>
                         <td>{{ fault.Priority }}</td>
                     </tr>
                     {% endif %}
@@ -83,7 +81,7 @@
                         <th>Fault Type</th>
                         <th>Upvotes</th>
                         <th>Date submitted</th>
-                        <th>Status</th>
+
                         <!-- Add more columns as needed -->
                     </tr>
                 </thead>
@@ -98,7 +96,7 @@
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>
-                        <td>{{ fault.Status }}</td>
+
                     </tr>
                     {% endif %}
                     {% endfor %}
@@ -118,7 +116,6 @@
                         <th>Fault Type</th>
                         <th>Upvotes</th>
                         <th>Date submitted</th>
-                        <th>Status</th>
                         <th>View history</th>
                         <!-- Add more columns as needed -->
                     </tr>
@@ -134,7 +131,6 @@
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>
-                        <td>{{ fault.Status }}</td>
                         <td><a href="#" class="btn btn-primary">View history</a></td>
                     </tr>
                     {% endif %}
