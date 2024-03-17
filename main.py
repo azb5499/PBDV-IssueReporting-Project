@@ -1,4 +1,6 @@
 import string
+
+import requests
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_mail import Mail, Message
 from random import *
@@ -131,6 +133,7 @@ class Fault(db.Model):
     Status = db.Column(db.String(50), nullable=False, default='In Progress')
     Technician_ID = db.Column(db.Integer, db.ForeignKey('technician.Technician_ID'), nullable=True)
     fault_log = db.Column(db.String(100), nullable=True)
+    Date_completed = db.Column(db.DateTime, nullable=True)
 
 
 @login_manager.user_loader
@@ -203,6 +206,35 @@ def get_email_body(first_name, last_name, email, phone_number, residence, skill,
     return body
 
 
+def get_weather_forecast():
+    api_key = "4a2fff6a08c5e6e6b5cfca0ae9b56009"
+    ENDPOINT = "https://api.openweathermap.org/data/2.5/forecast"
+
+    weather_params = {
+        "lon": 31.021839,
+        "lat": -29.858681,
+        "appid": api_key,
+        "units": "metric",  # Request temperature in Celsius
+        "cnt": 7 * 8,  # Request 8 forecasts for 7 days to get data for each day
+    }
+
+    response = requests.get(url=ENDPOINT, params=weather_params)
+    response.raise_for_status()
+    weather_data = response.json()
+
+    weather_forecast = {}
+
+    for forecast in weather_data['list']:
+        timestamp = forecast['dt']
+        date = datetime.utcfromtimestamp(timestamp)
+
+        day_of_week = date.weekday()
+        if day_of_week not in weather_forecast:
+            weather_forecast[day_of_week] = (date.strftime("%A"), forecast['weather'][0]['description'].capitalize())
+
+    return weather_forecast
+
+
 @app.route('/')
 def display_home():
     return render_template('home.html')
@@ -269,12 +301,11 @@ def display_login(user):
 @app.route('/register', methods=['GET', 'POST'])
 def display_registration():
     form = forms.StudentRegistration()
-    if current_user.is_active:
-        flash('User already logged in!')
-        return redirect(url_for('display_home'))
+
     if request.method == 'POST':
         if form.validate_on_submit():
             email = form.email.data
+            password = form.password.data
             user_exists = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
             if user_exists:
                 flash('This User exists already!')
@@ -284,12 +315,18 @@ def display_registration():
                 otp = get_otp()
                 session['otp'] = otp
                 session['email'] = email
-                session['password'] = form.password.data
-                msg = Message(subject='OTP', sender='dutmaintenance@gmail.com', recipients=[email])
-                msg.body = "Use this One-Time-Pin to verify your email: \n" + str(otp)
-                mail.send(msg)
+                session['password'] = password
+                if is_strong_password(password):
+                    msg = Message(subject='OTP', sender='dutmaintenance@gmail.com', recipients=[email])
+                    msg.body = "Use this One-Time-Pin to verify your email: \n" + str(otp)
+                    mail.send(msg)
 
-                return redirect(url_for('verify'))
+                    return redirect(url_for('verify'))
+                else:
+                    flash(
+                        "Password invalid.Must be >= 8 characters,1 uppercase & lowercase,1 digit,1 special character",
+                        "error")
+                    return render_template('register.html', form=form)
             else:
                 flash("Email not valid", "error")
 
@@ -298,6 +335,32 @@ def display_registration():
             form.password.data = session['password']
 
     return render_template('register.html', form=form)
+
+
+def is_strong_password(password):
+    # Check if password meets the following criteria:
+    # - At least 8 characters long
+    # - Contains at least one uppercase letter
+    # - Contains at least one lowercase letter
+    # - Contains at least one digit
+    # - Contains at least one special character (e.g., !@#$%^&*)
+
+    if len(password) < 8:
+        return False
+
+    if not re.search(r'[A-Z]', password):
+        return False
+
+    if not re.search(r'[a-z]', password):
+        return False
+
+    if not re.search(r'\d', password):
+        return False
+
+    if not re.search(r'[!@#$%^&*]', password):
+        return False
+
+    return True
 
 
 @app.route('/verify', methods=['GET', 'POST'])
@@ -393,7 +456,7 @@ def display_student_dashboard():
     if current_user.Role_ID != 2:
         flash('Route access not allowed!')
         return redirect(url_for('display_home'))
-
+    weather_forecast = get_weather_forecast()
     student = db.session.execute(db.select(Student).where(Student.User_ID == current_user.User_ID)).scalar()
     student_id = student.Student_ID
     all_faults = db.session.execute(db.select(Fault)).scalars()
@@ -406,15 +469,16 @@ def display_student_dashboard():
     student_info = {"username": get_username_from_email(student.Email),
                     "email": student.Email}
     return render_template('student_dashboard.html', faults=upvoted_faults, student_info=student_info,
-                           campus_names=campus_names)
+                           campus_names=campus_names, weather_forecast=weather_forecast)
 
 
 @app.route('/technician_dashboard')
 @login_required
 def display_technician_dashboard():
-    if current_user.Role_ID !=3:
+    if current_user.Role_ID != 3:
         flash('NOT ALLOWED!')
         return redirect(url_for('display_home'))
+    weather_forecast = get_weather_forecast()
     technician = db.session.execute(db.select(Technician).where(Technician.User_ID == current_user.User_ID)).scalar()
     technician_id = technician.Technician_ID
     tech_info = {"username": f'{technician.First_name} {technician.Last_name}',
@@ -429,7 +493,8 @@ def display_technician_dashboard():
         if technician_id == fault.Technician_ID:
             upvoted_faults.append(fault)
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
-    return render_template('tech_dashboard.html', faults=upvoted_faults, tech_info=tech_info, all_faults=all_faults,campus_names=campus_names)
+    return render_template('tech_dashboard.html', faults=upvoted_faults, tech_info=tech_info, all_faults=all_faults,
+                           campus_names=campus_names, weather_forecast=weather_forecast)
 
 
 @app.route('/admin_dashboard')
@@ -501,11 +566,12 @@ def display_active_fault_admin(fault_id):
     if current_user.Role_ID != 1:
         flash('NOT ALLOWED')
         return redirect(url_for('display_home'))
-
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    fault.Priority = calculate_priority(upvotes=fault.Upvotes, issue_date=fault.Date_submitted)
     technician = db.session.execute(
         db.select(Technician).where(Technician.Technician_ID == fault.Technician_ID)).scalar()
-    return render_template('admin_active_fault.html', fault=fault, technician=technician)
+    return render_template('admin_active_fault.html', fault=fault, technician=technician, campus_names=campus_names)
 
 
 @app.route('/view_completed/<fault_id>')
@@ -518,7 +584,7 @@ def display_completed_fault_admin(fault_id):
     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
     technician = db.session.execute(
         db.select(Technician).where(Technician.Technician_ID == fault.Technician_ID)).scalar()
-    return render_template('admin_active_fault.html', fault=fault, technician=technician)
+    return render_template('admin_completed_fault.html', fault=fault, technician=technician)
 
 
 @app.route('/view_active_tech_faults/<fault_id>')
@@ -674,25 +740,31 @@ def reset_password():
         password = form.password.data
         confirm_password = form.confirm_password.data
         print(password + " " + confirm_password)
-        if password != confirm_password:
-            flash('Passwords must match!')
-            return redirect(url_for('reset_password'))
 
-        email = session.pop('reset_password_email')
-        user_id = session.pop('user_id')
-        user = db.session.execute(db.select(User).where(User.User_ID == user_id)).scalar()
-        role_id = user.Role_ID
-        if role_id == 1:
-            user = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
-        elif role_id == 2:
-            user = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
-        elif role_id == 3:
-            user = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
-        user.Password = generate_password_hash(password, salt_length=8)
-        db.session.commit()
-        session.pop('reset_password_otp')
-        flash('Password reset successful. You can now login with your new password.', 'success')
-        return redirect(url_for('display_home'))
+        if is_strong_password(password):
+            if password != confirm_password:
+                flash('Passwords must match!')
+                return redirect(url_for('reset_password'))
+
+            email = session.pop('reset_password_email')
+            user_id = session.pop('user_id')
+            user = db.session.execute(db.select(User).where(User.User_ID == user_id)).scalar()
+            role_id = user.Role_ID
+            if role_id == 1:
+                user = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
+            elif role_id == 2:
+                user = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
+            elif role_id == 3:
+                user = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
+            user.Password = generate_password_hash(password, salt_length=8)
+            db.session.commit()
+            session.pop('reset_password_otp')
+            flash('Password reset successful. You can now login with your new password.', 'success')
+            return redirect(url_for('display_home'))
+        else:
+            flash("Password invalid.Must be >= 8 characters,1 uppercase & lowercase,1 digit,1 special character",
+                  "error")
+
     return render_template('reset_password.html', form=form)
 
 

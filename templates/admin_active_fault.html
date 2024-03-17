@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block title %}Home{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
+        <h1>Active Report</h1>
+        <div class="completed-reports">
+            <div class="report">
+                <div class="report-heading">
+                    <p><strong>Campus:</strong> {{ campus_names[fault.Campus_ID] }}</p>
+                    <p><strong>Block:</strong> {{ fault.Block }}</p>
+                    <p><strong>Location:</strong> {{ fault.Location }}</p>
+                    <p><strong>Date submitted:</strong> {{ fault.Date_submitted }}</p>
+                </div>
+                <div class="report-description">
+                    <p><strong>Description:</strong> {{ fault.Description }}</p>
+                    <p><strong>Fault Type:</strong> {{ fault.Fault_Type }}</p>
+                    <p><strong>Upvotes:</strong> {{ fault.Upvotes | length }}</p>
+                    <p><strong>Status:</strong> {{ fault.Status }}</p>
+                    <p><strong>Priority:</strong> {{ fault.Priority }}</p>
+
+                </div>
+            </div>
+            <div class="technician-info">
+                <p><strong>Technician:</strong> {{ fault.Technician.First_name }} {{ fault.Technician.Last_name }}</p>
+                <p><strong>Email:</strong> {{ fault.Technician.Email }}</p>
+                <p><strong>Phone Number:</strong> {{ fault.Technician.Phone_number }}</p>
+                <p><strong>Residing Area:</strong> {{ fault.Technician.Residing_area }}</p>
+                <p><strong>Job Description:</strong> {{ fault.Technician.Job_description }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

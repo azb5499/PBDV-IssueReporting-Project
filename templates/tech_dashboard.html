@@ -16,7 +16,10 @@
                 <!-- User Information -->
                 <p>Name: {{ tech_info.username }}</p>
                 <p>Email: {{ tech_info.email }}</p>
-                
+
+                <h3>Weather Forecast:</h3>
+                <p>{{ weather_forecast }}</p>
+
                 <a href="{{ url_for('display_home') }}">Edit Profile</a>
                 <p></p>
                 <!-- Add more user details as needed -->
@@ -37,7 +40,6 @@
                 </div>
                     <div class="carousel-item">
                         <h2>Assigned Faults</h2>
-                        <!-- Add view Task Management section here -->
                         <table class="table">
                 <thead>
                     <tr>

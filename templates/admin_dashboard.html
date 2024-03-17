@@ -83,8 +83,7 @@
                         <th>Description</th>
                         <th>Fault Type</th>
                         <th>Upvotes</th>
-                        <th>Date submitted</th>
-
+                        <th>Priority</th>
                         <!-- Add more columns as needed -->
                     </tr>
                 </thead>
@@ -95,11 +94,10 @@
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
                         <td>{{ fault.Location }}</td>
-                        <td>{{ fault.Description }}</td>
+                        <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_active_fault_admin',fault_id=fault.Fault_ID) }}">more</a></td>
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
-                        <td>{{ fault.Date_submitted }}</td>
-
+                        <td>{{ fault.Priority }}</td>
                     </tr>
                     {% endif %}
                     {% endfor %}
@@ -120,7 +118,7 @@
                         <th>Description</th>
                         <th>Fault Type</th>
                         <th>Upvotes</th>
-                        <th>Date submitted</th>
+                        <th>Date completed</th>
                         <th>View history</th>
                         <!-- Add more columns as needed -->
                     </tr>
@@ -135,8 +133,8 @@
                         <td>{{ fault.Description }}</td>
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
-                        <td>{{ fault.Date_submitted }}</td>
-                        <td><a href="#" class="btn btn-primary">View history</a></td>
+                        <td>{{ fault.Date_completed }}</td>
+                        <td><a href="{{ url_for('completed_fault',fault_id=fault.Fault_ID) }}" class="btn btn-primary">View history</a></td>
                     </tr>
                     {% endif %}
                     {% endfor %}
