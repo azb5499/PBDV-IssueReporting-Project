@@ -91,9 +91,10 @@ def create_admin_passwords():
     icount = 0
     for admin in all_admins:
         admin.Password = generate_password_hash(passwords[icount])
-        icount +=1
+        icount += 1
         print('Done')
     db.session.commit()
+
 
 class Technician(db.Model):
     Technician_ID = db.Column(db.Integer, primary_key=True)
@@ -181,40 +182,9 @@ def generate_password():
     return Randomised_String
 
 
-def send_registration_email(first_name, last_name, email, phone_number, residence, skill, password):
-    # Email details
-    sender_email = 'dutmaintenance@gmail.com'  # Change this to your email address
-    receiver_email = email
-    subject = "Congratulations, you are now a registered DUT technician"
+def get_email_body(first_name, last_name, email, phone_number, residence, skill, password):
     body = f"Below are your details:\n\nFirst Name: {first_name}\nLast Name: {last_name}\nEmail Address: {email}\nPhone Number: {phone_number}\nPlace of Residence: {residence}\nSkill: {skill}\nPassword: {password}"
-
-    # Create message container
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = subject
-
-    # Attach body to the email
-    msg.attach(MIMEText(body, 'plain'))
-
-    # Initialize SMTP server
-    smtp_server = 'smtp.gmail.com'  # Change this to your SMTP server
-    smtp_port = 465  # Change this to your SMTP port
-    smtp_username = 'dutmaintenance@gmail.com'  # Change this to your SMTP username
-    smtp_password = 'gbhevmvnqlqskvgd'  # Change this to your SMTP password
-
-    # Start TLS/SSL connection to SMTP server
-    server = smtplib.SMTP(smtp_server, smtp_port)
-    server.starttls()
-
-    # Login to SMTP server
-    server.login(smtp_username, smtp_password)
-
-    # Send email
-    server.sendmail(sender_email, receiver_email, msg.as_string())
-
-    # Quit SMTP server
-    server.quit()
+    return body
 
 
 @app.route('/')
@@ -239,8 +209,8 @@ def display_login(user):
                     # this log in a user at this point
             else:
                 flash('User does not exist')
-                return redirect(url_for('display_home'))
-        return render_template('login.html', form=form)
+                return redirect(url_for('display_login', user=1, role=2))
+        return render_template('login.html', form=form, role=2)
     elif user == '2':
         # this will be the Tech login action
         if form.validate_on_submit():
@@ -255,8 +225,8 @@ def display_login(user):
                     return redirect(url_for('display_technician_dashboard'))
             else:
                 flash('User does not exist')
-                return redirect(url_for('display_login', user='2'))
-        return render_template('login.html', form=form)
+                return redirect(url_for('display_login', user='2', role=3))
+        return render_template('login.html', form=form, role=3)
     elif user == '3':
         # Admin login
         if form.validate_on_submit():
@@ -274,8 +244,8 @@ def display_login(user):
                     # this log in a user at this point
             else:
                 flash('User does not exist')
-                return redirect(url_for('display_login', user='3'))
-        return render_template('login.html', form=form)
+                return redirect(url_for('display_login', user='3', role=1))
+        return render_template('login.html', form=form, role=1)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -288,7 +258,7 @@ def display_registration():
             user_exists = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
             if user_exists:
                 flash('This User exists already!')
-                return redirect(url_for('display_registration'))
+                return redirect(url_for('display_login', user=1))
 
             if validate_student_email(email):
                 session['email'] = email
@@ -384,8 +354,11 @@ def display_technician_registration():
                                 )
         db.session.add(technician)
         db.session.commit()
-        send_registration_email(first_name=first_name, last_name=last_name, email=email, phone_number=phone_number,
-                                residence=residing_area, skill=job_desc, password=password)
+        msg = Message(subject="Congratulations, you are now a registered DUT technician",
+                      sender='dutmaintenance@gmail.com', recipients=[email])
+        msg.body = get_email_body(first_name=first_name, last_name=last_name, email=email, phone_number=phone_number,
+                                  residence=residing_area, skill=job_desc, password=password)
+        mail.send(msg)
         flash('Registration Complete')
         return redirect(url_for('display_admin_dashboard'))
     return render_template('register.html', form=form)
@@ -423,7 +396,7 @@ def display_technician_dashboard():
     for fault in all_faults:
         if technician_id == fault.Technician_ID:
             upvoted_faults.append(fault)
-    return render_template('dashboard.html', faults=upvoted_faults)
+    return render_template('tech_dashboard.html', faults=upvoted_faults)
 
 
 @app.route('/admin_dashboard')
@@ -529,16 +502,27 @@ def display_add_issue():
     return render_template('add_issue.html', form=form, blocks=blocks, campus_img_dict=campus_img_dict)
 
 
-@app.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
+@app.route('/forgot-password/<role>', methods=['GET', 'POST'])
+def forgot_password(role):
     form = forms.ForgotPassword()
     if request.method == 'POST':
         email = request.form.get('email')
         # Check if email exists in the database (you may need to query your database here)
-        if email:
+        if role == '1':
+            user = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
+        elif role == '2':
+            user = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
+        elif role == '3':
+            user = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
+        else:
+            flash('404,route does not exist','error')
+            return redirect(url_for('forgot_password', role=role))
+
+        if user:
             # Store OTP and email in session
             session['reset_password_email'] = email
             session['reset_password_otp'] = otp
+            session['user_id'] = user.User_ID
             # Send OTP to user's email
             msg = Message(subject='Password Reset OTP', sender='dutmaintenance@gmail.com', recipients=[email])
             msg.body = f'Your OTP for password reset is: {otp}'
@@ -546,8 +530,9 @@ def forgot_password():
             # Redirect to OTP verification page
             return redirect(url_for('verify_otp'))
         else:
-            flash('Email not found. Please try again.', 'error')
-    return render_template('forgot_password.html', form=form)
+            flash('User does not exist!','error')
+            return redirect(url_for('forgot_password', role=role))
+    return render_template('forgot_password.html', form=form, role=role)
 
 
 @app.route('/verify-otp', methods=['GET', 'POST'])
@@ -555,7 +540,7 @@ def verify_otp():
     form = forms.Verify()
     if request.method == 'POST':
         if form.validate_on_submit():
-            entered_otp = int(request.form.get('OTP'))
+            entered_otp = int(form.OTP.data)
             if entered_otp == session.get('reset_password_otp'):
                 # OTP verification successful, allow user to reset password
                 return redirect(url_for('reset_password'))
@@ -570,10 +555,25 @@ def reset_password():
     if request.method == 'POST':
         # Reset password logic (you may need to update your database with the new password)
         # Clear session after password reset
-        password = request.form.get("password")
-        conPass = request.form.get("ConPass")
-        print(password + " " + conPass)
-        session.pop('reset_password_email')
+        password = form.password.data
+        confirm_password = form.confirm_password.data
+        print(password + " " + confirm_password)
+        if password != confirm_password:
+            flash('Passwords must match!')
+            return redirect(url_for('reset_password'))
+
+        email = session.pop('reset_password_email')
+        user_id = session.pop('user_id')
+        user = db.session.execute(db.select(User).where(User.User_ID == user_id)).scalar()
+        role_id = user.Role_ID
+        if role_id == 1:
+            user = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
+        elif role_id ==2:
+            user = db.session.execute(db.select(Student).where(Student.Email == email)).scalar()
+        elif role_id == 3:
+            user = db.session.execute(db.select(Technician).where(Technician.Email == email)).scalar()
+        user.Password = generate_password_hash(password,salt_length=8)
+        db.session.commit()
         session.pop('reset_password_otp')
         flash('Password reset successful. You can now login with your new password.', 'success')
         return redirect(url_for('display_home'))

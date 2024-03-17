@@ -13,5 +13,6 @@
     </text>
 </svg>
         {{ render_form(form) }}
+        <a type="button" class="btn btn-link" href="{{ url_for('forgot_password',role=role) }}">Forgot Password</a>
     </div>
 {% endblock %}

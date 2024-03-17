@@ -29,16 +29,18 @@ class TechnicianRegistration(FlaskForm):
     phone_number = StringField("Phone Number", validators=[
         validators.Regexp(r'^\+?27?\d{9}$', message="Invalid South African phone number")
     ])
-    residing_area = SelectField('Residing City',choices=[('Durban','Durban'),('Pietermaritzburg','Pietermaritzburg')],validators=[validators.DataRequired()])
+    residing_area = SelectField('Residing City',
+                                choices=[('Durban', 'Durban'), ('Pietermaritzburg', 'Pietermaritzburg')],
+                                validators=[validators.DataRequired()])
     submit = SubmitField('Submit')
 
 
 class ReportIssue(FlaskForm):
     campus = SelectField("Campus", validators=[validators.DataRequired()])
     block = SelectField("Block", validators=[validators.DataRequired()])
-    location = StringField("Fault Location",validators=[validators.DataRequired()])
+    location = StringField("Fault Location", validators=[validators.DataRequired()])
     issue_summary = StringField("Issue Summary", validators=[validators.DataRequired()])
-    fault_type = SelectField("Fault type",validators=[validators.DataRequired()])
+    fault_type = SelectField("Fault type", validators=[validators.DataRequired()])
     submit = SubmitField('Submit')
 
 
@@ -54,5 +56,8 @@ class ForgotPassword(FlaskForm):
 
 class ResetPassword(FlaskForm):
     password = PasswordField('Password', validators=[validators.DataRequired()])
-    ConPass = PasswordField('Confirm Password', validators=[validators.DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        validators.DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
     submit = SubmitField('Submit')
