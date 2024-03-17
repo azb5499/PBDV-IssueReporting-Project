@@ -1,3 +1,8 @@
+import smtplib
+import string
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from random import choice, shuffle
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_mail import Mail, Message
 from random import *
@@ -80,12 +85,23 @@ class Admin(db.Model):
     # Define other admin fields here
 
 
+def create_admin_passwords():
+    all_admins = db.session.execute(db.select(Admin)).scalars()
+    passwords = ['admin_password_01', 'admin_password_01', 'admin_password_01']
+    icount = 0
+    for admin in all_admins:
+        admin.Password = generate_password_hash(passwords[icount])
+        icount +=1
+        print('Done')
+    db.session.commit()
+
 class Technician(db.Model):
     Technician_ID = db.Column(db.Integer, primary_key=True)
     User_ID = db.Column(db.Integer, db.ForeignKey('user.User_ID'), nullable=False, unique=True)
     Admin_ID = db.Column(db.Integer, db.ForeignKey('admin.Admin_ID'), nullable=False)
     First_name = db.Column(db.String(50), nullable=False)
     Last_name = db.Column(db.String(50), nullable=False)
+    Password = db.Column(db.String(50), nullable=False)
     Residing_area = db.Column(db.String(70), nullable=False)
     Phone_number = db.Column(db.String(20), nullable=False)
     Email = db.Column(db.String(100), nullable=False, unique=True)
@@ -127,6 +143,78 @@ def get_username_from_email(email):
     parts = email.split("@")
     # Return the part before the "@" symbol
     return parts[0]
+
+
+def check_gmail_email(email):
+    # Regular expression to match a Gmail email address
+    gmail_regex = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
+
+    # Check if the email matches the Gmail regex pattern
+    if re.match(gmail_regex, email):
+        return True
+    else:
+        return False
+
+
+def generate_password():
+    # Specify counts for letters, numbers, and symbols
+    Letter_Count = 8  # Example: 8 letters
+    Number_Count = 4  # Example: 4 numbers
+    Symbol_Count = 2  # Example: 2 symbols
+
+    Password_List = []
+    # Generate letters
+    for L in range(Letter_Count):
+        Password_List.append(choice(string.ascii_letters))
+    # Generate numbers
+    for N in range(Number_Count):
+        Password_List.append(choice(string.digits))
+    # Generate symbols
+    for S in range(Symbol_Count):
+        Password_List.append(choice(string.punctuation))
+
+    # Shuffle the password list
+    shuffle(Password_List)
+
+    # Concatenate the characters to form the password
+    Randomised_String = ''.join(Password_List)
+    return Randomised_String
+
+
+def send_registration_email(first_name, last_name, email, phone_number, residence, skill, password):
+    # Email details
+    sender_email = 'dutmaintenance@gmail.com'  # Change this to your email address
+    receiver_email = email
+    subject = "Congratulations, you are now a registered DUT technician"
+    body = f"Below are your details:\n\nFirst Name: {first_name}\nLast Name: {last_name}\nEmail Address: {email}\nPhone Number: {phone_number}\nPlace of Residence: {residence}\nSkill: {skill}\nPassword: {password}"
+
+    # Create message container
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+
+    # Attach body to the email
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Initialize SMTP server
+    smtp_server = 'smtp.gmail.com'  # Change this to your SMTP server
+    smtp_port = 465  # Change this to your SMTP port
+    smtp_username = 'dutmaintenance@gmail.com'  # Change this to your SMTP username
+    smtp_password = 'gbhevmvnqlqskvgd'  # Change this to your SMTP password
+
+    # Start TLS/SSL connection to SMTP server
+    server = smtplib.SMTP(smtp_server, smtp_port)
+    server.starttls()
+
+    # Login to SMTP server
+    server.login(smtp_username, smtp_password)
+
+    # Send email
+    server.sendmail(sender_email, receiver_email, msg.as_string())
+
+    # Quit SMTP server
+    server.quit()
 
 
 @app.route('/')
@@ -177,7 +265,8 @@ def display_login(user):
             print(5)
             admin = db.session.execute(db.select(Admin).where(Admin.Email == email)).scalar()
             if admin:
-                if password == 'admin123':
+                if check_password_hash(password=password
+                        , pwhash=admin.Password):
                     logged_in_user = db.session.execute(db.select(User).where(User.User_ID == admin.User_ID)).scalar()
                     login_user(logged_in_user)
                     print(current_user.User_ID)
@@ -280,12 +369,14 @@ def display_technician_registration():
         user = User(Role_ID=3)
         db.session.add(user)
         db.session.commit()
+        password = generate_password()
         last_inserted_user = User.query.order_by(desc(User.User_ID)).first()
         admin_record = db.session.execute(db.select(Admin).where(Admin.User_ID == current_user.User_ID)).scalar()
         technician = Technician(First_name=first_name,
                                 Last_name=last_name,
                                 Phone_number=phone_number,
                                 Email=email,
+                                Password=generate_password_hash(password, salt_length=8),
                                 Residing_area=residing_area,
                                 Job_description=job_desc,
                                 Admin_ID=admin_record.Admin_ID,
@@ -293,6 +384,8 @@ def display_technician_registration():
                                 )
         db.session.add(technician)
         db.session.commit()
+        send_registration_email(first_name=first_name, last_name=last_name, email=email, phone_number=phone_number,
+                                residence=residing_area, skill=job_desc, password=password)
         flash('Registration Complete')
         return redirect(url_for('display_admin_dashboard'))
     return render_template('register.html', form=form)
@@ -342,8 +435,11 @@ def display_admin_dashboard():
     admin_info = {"username": get_username_from_email(admin.Email),
                   "email": admin.Email}
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    all_admins = db.session.execute(db.select(Admin)).scalars()
+    all_admins_dict = {admin.User_ID: get_username_from_email(admin.Email) for admin in all_admins}
+    print(all_admins_dict)
     return render_template('admin_dashboard.html', campus_names=campus_names, faults=all_issues,
-                           technicians=technicians, admin_info=admin_info)
+                           technicians=technicians, admin_info=admin_info, all_admins_dict=all_admins_dict)
 
 
 @app.route('/viewIssue', methods=['GET'])
@@ -374,9 +470,10 @@ def upvote_issue(fault_id):
             print(2)
             flash('Fault record does not exist')
             return redirect(url_for('display_home'))
-
+        student = db.session.execute(db.select(Student).where(Student.User_ID == current_user.User_ID)).scalar()
+        student_id = student.Student_ID
         print(3)
-        if current_user.User_ID in issue_record.Upvotes:
+        if student_id in issue_record.Upvotes:
             flash('Cannot upvote twice!')
             return redirect(url_for('display_home'))
 
@@ -385,8 +482,7 @@ def upvote_issue(fault_id):
         if not issue_record.Upvotes:
             issue_record.Upvotes = []
         new_votes = issue_record.Upvotes.copy()  # Avoid modifying original data
-        student = db.session.execute(db.select(Student).where(Student.User_ID == current_user.User_ID)).scalar()
-        new_votes.append(student.Student_ID)
+        new_votes.append(student_id)
 
         # Update using jsonb_set (adjust for your database)
         issue_record.Upvotes = new_votes
@@ -433,10 +529,55 @@ def display_add_issue():
     return render_template('add_issue.html', form=form, blocks=blocks, campus_img_dict=campus_img_dict)
 
 
-@app.route('/forgotPassword', methods=['GET', 'POST'])
-@app.route('/resetPassword', methods=['GET', 'POST'])
-def display_reset_password():
-    return 'Reset password'
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    form = forms.ForgotPassword()
+    if request.method == 'POST':
+        email = request.form.get('email')
+        # Check if email exists in the database (you may need to query your database here)
+        if email:
+            # Store OTP and email in session
+            session['reset_password_email'] = email
+            session['reset_password_otp'] = otp
+            # Send OTP to user's email
+            msg = Message(subject='Password Reset OTP', sender='dutmaintenance@gmail.com', recipients=[email])
+            msg.body = f'Your OTP for password reset is: {otp}'
+            mail.send(msg)
+            # Redirect to OTP verification page
+            return redirect(url_for('verify_otp'))
+        else:
+            flash('Email not found. Please try again.', 'error')
+    return render_template('forgot_password.html', form=form)
+
+
+@app.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp():
+    form = forms.Verify()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            entered_otp = int(request.form.get('OTP'))
+            if entered_otp == session.get('reset_password_otp'):
+                # OTP verification successful, allow user to reset password
+                return redirect(url_for('reset_password'))
+            else:
+                flash('Invalid OTP. Please try again.', 'error')
+    return render_template('verify_otp.html', form=form)
+
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    form = forms.ResetPassword()
+    if request.method == 'POST':
+        # Reset password logic (you may need to update your database with the new password)
+        # Clear session after password reset
+        password = request.form.get("password")
+        conPass = request.form.get("ConPass")
+        print(password + " " + conPass)
+        session.pop('reset_password_email')
+        session.pop('reset_password_otp')
+        flash('Password reset successful. You can now login with your new password.', 'success')
+        return redirect(url_for('display_home'))
+    return render_template('reset_password.html', form=form)
 
 
 @app.route('/login_redirect')

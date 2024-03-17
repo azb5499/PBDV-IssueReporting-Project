@@ -45,3 +45,14 @@ class ReportIssue(FlaskForm):
 class Verify(FlaskForm):
     OTP = IntegerField('OTP', validators=[validators.DataRequired()])
     submit = SubmitField('Submit')
+
+
+class ForgotPassword(FlaskForm):
+    email = EmailField('Email', validators=[validators.Email(), validators.DataRequired()])
+    submit = SubmitField('Submit')
+
+
+class ResetPassword(FlaskForm):
+    password = PasswordField('Password', validators=[validators.DataRequired()])
+    ConPass = PasswordField('Confirm Password', validators=[validators.DataRequired()])
+    submit = SubmitField('Submit')

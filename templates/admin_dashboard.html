@@ -84,7 +84,7 @@
                 </thead>
                 <tbody>
                     {% for fault in faults %}
-                    {% if fault.Status == 'Pending': %}
+                    {% if fault.Status == 'Active': %}
                     <tr>
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
@@ -114,12 +114,13 @@
                         <th>Upvotes</th>
                         <th>Date submitted</th>
                         <th>Status</th>
+                        <th>View history</th>
                         <!-- Add more columns as needed -->
                     </tr>
                 </thead>
                 <tbody>
                     {% for fault in faults %}
-                    {% if fault.Status == 'Pending': %}
+                    {% if fault.Status == 'Completed': %}
                     <tr>
                         <td>{{ campus_names[fault.Campus_ID] }}</td>
                         <td>{{ fault.Block }}</td>
@@ -129,6 +130,7 @@
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>
                         <td>{{ fault.Status }}</td>
+                        <td><a href="#" class="btn btn-primary">View history</a></td>
                     </tr>
                     {% endif %}
                     {% endfor %}
@@ -138,7 +140,36 @@
                     <div class="carousel-item">
                         <h2>Technician</h2>
                         <!-- Add section here, technicians and a link to all reports theyre working on while also providing the functionality to add more technicians -->
+                        <table class="table">
+                <thead>
+                    <tr>
+                        <th>Admin admission</th>
+                        <th>First name</th>
+                        <th>Last name</th>
+                        <th>Residing Area</th>
+                        <th>Phone number</th>
+                        <th>Email</th>
+                        <th>Specialisation</th>
 
+                        <!-- Add more columns as needed -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tech in technicians %}
+                    <tr>
+                        <td>{{ all_admins_dict[tech.Admin_ID] }}</td>
+                        <td>{{ tech.First_name }}</td>
+                        <td>{{ tech.Last_name }}</td>
+                        <td>{{ tech.Residing_area }}</td>
+                        <td>{{ tech.Phone_number }}</td>
+                        <td>{{ tech.Email }}</td>
+                        <td>{{ tech.Job_description }}</td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+                        <a href="{{ url_for('display_technician_registration') }}" class="btn btn-primary">Add technician</a>
                     </div>
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
