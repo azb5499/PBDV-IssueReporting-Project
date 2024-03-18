@@ -31,7 +31,7 @@
                     <a class="nav-link" href="{{ url_for('display_issue') }}" aria-current="page">VIEW ISSUES</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">CONTACT US</a>
+                    <a class="nav-link" href="{{ url_for('display_contact') }}">CONTACT US</a>
                 </li>
                 <li class="nav-item">
                     {% if current_user.Role_ID == 1: %}

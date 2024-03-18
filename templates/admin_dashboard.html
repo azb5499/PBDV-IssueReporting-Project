@@ -16,7 +16,16 @@
                 <!-- User Information -->
                 <p>Name: {{ admin_info.username }}</p>
                 <p>Email: {{ admin_info.email }}</p>
-
+                {% if weather_forecast %}
+                    <h3>Weather Forecast:</h3>
+                    <ul>
+                        {% for key, value in weather_forecast.items() %}
+                            <li>{{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No weather forecast available.</p>
+                {% endif %}
                 <!-- Add more user details as needed -->
                 <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
             </div>
@@ -134,7 +143,7 @@
                         <td>{{ fault.Fault_Type }}</td>
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_completed }}</td>
-                        <td><a href="{{ url_for('completed_fault',fault_id=fault.Fault_ID) }}" class="btn btn-primary">View history</a></td>
+                        <td><a href="{{ url_for('display_completed_fault_admin',fault_id=fault.Fault_ID) }}" class="btn btn-primary">View history</a></td>
                     </tr>
                     {% endif %}
                     {% endfor %}

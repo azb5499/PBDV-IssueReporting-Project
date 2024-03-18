@@ -1,3 +1,4 @@
+import os
 import string
 
 import requests
@@ -6,12 +7,12 @@ from flask_mail import Mail, Message
 from random import *
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
-from flask_gravatar import Gravatar
+
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import desc
-from functools import wraps
+
 from flask import session
 import re
 from datetime import datetime, timezone
@@ -23,8 +24,8 @@ app = Flask(__name__)
 
 app.config["MAIL_SERVER"] = 'smtp.gmail.com'
 app.config["MAIL_PORT"] = 465
-app.config["MAIL_USERNAME"] = 'dutmaintenance@gmail.com'
-app.config["MAIL_PASSWORD"] = 'gbhevmvnqlqskvgd'
+app.config["MAIL_USERNAME"] = os.environ.get('MAINTAINENCE_EMAIL')
+app.config["MAIL_PASSWORD"] = os.environ.get('MAINTAINENCE_EMAIL_PASS')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
@@ -40,9 +41,9 @@ class Base(DeclarativeBase):
 
 
 db = SQLAlchemy(model_class=Base)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_STRING')
 db.init_app(app)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 boostrap = Bootstrap5(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -87,15 +88,6 @@ class Admin(db.Model):
     # Define other admin fields here
 
 
-def create_admin_passwords():
-    all_admins = db.session.execute(db.select(Admin)).scalars()
-    passwords = ['admin_password_01', 'admin_password_01', 'admin_password_01']
-    icount = 0
-    for admin in all_admins:
-        admin.Password = generate_password_hash(passwords[icount])
-        icount += 1
-        print('Done')
-    db.session.commit()
 
 
 class Technician(db.Model):
@@ -208,7 +200,7 @@ def get_email_body(first_name, last_name, email, phone_number, residence, skill,
 
 
 def get_weather_forecast():
-    api_key = "4a2fff6a08c5e6e6b5cfca0ae9b56009"
+    api_key = os.environ.get('WEATHER_API_KEY')
     ENDPOINT = "https://api.openweathermap.org/data/2.5/forecast"
 
     weather_params = {
@@ -460,6 +452,28 @@ def display_technician_registration():
     return render_template('register.html', form=form)
 
 
+@app.route('/contact', methods=['GET', 'POST'])
+def display_contact():
+    form = forms.Contact()
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            name = form.name.data
+            email = form.email.data
+            message = form.message.data
+            msg = Message(subject='New Contact Form Submission', sender=email, recipients=['dutmaintenance@gmail.com'])
+            msg.body = f"You have received a new message from {name} ({email}):\n\n{message}"
+            mail.send(msg)
+
+            flash('Your message has been sent successfully!', 'success')
+            return redirect(url_for('display_contact'))
+
+        else:
+            flash('Please fill in all the required fields.', 'error')
+
+    return render_template('contact.html', form=form)
+
+
 @app.route('/student_dashboard')
 @login_required
 def display_student_dashboard():
@@ -522,9 +536,10 @@ def display_admin_dashboard():
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     all_admins = db.session.execute(db.select(Admin)).scalars()
     all_admins_dict = {admin.User_ID: get_username_from_email(admin.Email) for admin in all_admins}
+    weather_forecast = get_weather_forecast()
     print(all_admins_dict)
     return render_template('admin_dashboard.html', campus_names=campus_names, faults=all_issues,
-                           technicians=technicians, admin_info=admin_info, all_admins_dict=all_admins_dict)
+                           technicians=technicians, admin_info=admin_info, all_admins_dict=all_admins_dict,weather_forecast=weather_forecast)
 
 
 @app.route('/view_pending/<fault_id>', methods=['GET', 'POST'])

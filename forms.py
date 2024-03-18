@@ -2,7 +2,7 @@ from flask_ckeditor import CKEditorField
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, SelectField
 from wtforms.fields.numeric import IntegerField
-from wtforms.fields.simple import BooleanField
+from wtforms.fields.simple import BooleanField, TextAreaField
 from wtforms.validators import EqualTo
 
 
@@ -78,4 +78,10 @@ class AssignTechnician(FlaskForm):
 class IssueResolvedForm(FlaskForm):
     editor_text = CKEditorField('Describe the solution', validators=[validators.DataRequired()])
     confirm = BooleanField('Confirm', validators=[validators.DataRequired()])
+    submit = SubmitField('Submit')
+
+class Contact(FlaskForm):
+    name = StringField("Name", validators=[validators.DataRequired()])
+    email = EmailField('Email', validators=[validators.Email(), validators.DataRequired()])
+    message = TextAreaField('Message', validators=[validators.DataRequired()])
     submit = SubmitField('Submit')

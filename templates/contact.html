@@ -5,7 +5,6 @@
     {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* Define red box-shadow color for all input boxes */
         .input-box input:focus,
         .input-box textarea:focus {
             box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
@@ -14,24 +13,11 @@
 {% endblock %}
 {% block content %}
     <div class="container" style="padding: 60px;">
-        <h2 id="contact-us" style="font-family: 'Bebas Neue', Arial, sans-serif; letter-spacing: 2px;">Contact Us</h2>
-       {% if msg_sent %}
-          <h2 id="msg-sent">Successfully sent your message</h2>
-       {% endif %}
-        <form action="" method="post">
-            <div class="mb-3 input-box">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="mb-3 input-box">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="mb-3 input-box">
-                <label for="message" class="form-label">Message</label>
-                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-    </div>
+       <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+                        <text x="35%" y="50%" class="text" stroke="#C0F0EF" letter-spacing="2px" font-size="50px" font-weight="700" stroke-width="1" style="animation: textAnimate 5s infinite alternate; text-anchor: middle; dominant-baseline: middle;">
+                            CONTACT US
+                        </text>
+                    </svg>
+        {{ render_form(form) }}
+</div>
 {% endblock %}
