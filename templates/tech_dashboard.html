@@ -17,15 +17,19 @@
                 <p>Name: {{ tech_info.username }}</p>
                 <p>Email: {{ tech_info.email }}</p>
 
-                <h3>Weather Forecast:</h3>
-                <ol>
-                {% for i in range(0, len(weather_forecast)) %}
-                    <li>{{ weather_forecast[i] }}</li>
-                {% endfor %}
-                </ol>
+               {% if weather_forecast %}
+                    <h3>Weather Forecast:</h3>
+                    <ul>
+                        {% for key, value in weather_forecast.items() %}
+                            <li>{{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No weather forecast available.</p>
+                {% endif %}
 
-                <a href="{{ url_for('display_home') }}">Edit Profile</a>
-                <p></p>
+
+                <br>
                 <!-- Add more user details as needed -->
                 <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
             </div>
@@ -62,10 +66,10 @@
                     {% for fault in faults %}
                     {% if fault.Status == 'In Progress' %}
                     <tr>
-                        <td>{{ campus_names[fault.Campus_ID] }}</td>
-                        <td>{{ fault.Block }}</td>
+                        <td>{{ campus_names[fault.Campus_ID] }}..<a href="{{ url_for('display_view_filter',filter='campus',fault_id=fault.Fault_ID) }}">Filter campus</a></td>
+                        <td>{{ fault.Block }}..<a href="{{ url_for('display_view_filter',filter='campus',fault_id=fault.Fault_ID) }}">Filter Block</a></td>
                         <td>{{ fault.Description[:10] }}..<a href="{{ url_for('display_active_tech_faults',fault_id=fault.Fault_ID) }}">more</a></td>
-                        <td>{{ fault.Fault_Type }}</td>
+                        <td>{{ fault.Fault_Type }}..<a href="{{ url_for('display_view_filter',filter='campus',fault_id=fault.Fault_ID) }}">Filter fault</a></td>
                         <td>{{ fault.Upvotes | length }}</td>
                         <td>{{ fault.Date_submitted }}</td>
                         <td>{{ fault.Priority }}</td>

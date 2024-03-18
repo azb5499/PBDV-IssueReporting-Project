@@ -635,6 +635,28 @@ def display_completed_tech_fault(fault_id):
     return render_template('completed_tech_fault.html', fault=fault, campus_names=campus_names)
 
 
+@app.route('/view_filter/<filter>/<fault_id>', methods=['GET'])
+@login_required
+def display_view_filter(filter,fault_id):
+    if current_user.Role_ID != 3:
+        flash('NOT ALLOWED!')
+        return redirect(url_for('display_home'))
+    filters = ['campus', 'block', 'fault_type']
+    if filter not in filters:
+        flash('filter doesnt exist')
+        return redirect(url_for('display_technician_dashboard'))
+    campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
+    faults = ''
+    fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    if filter == filters[0]:
+        faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID)).scalars()
+    elif filter == filters[1]:
+        faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID and Fault.Block == fault.Block)).scalars()
+    elif filter == filters[2]:
+        faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID and Fault.Block == fault.Block and Fault.Fault_Type == fault.Fault_Type)).scalars()
+    return render_template('view_filter.html',faults=faults,campus_names=campus_names)
+
+
 @app.route('/viewIssue', methods=['GET'])
 def display_issue():
     issues = db.session.execute(db.select(Fault)).scalars()
