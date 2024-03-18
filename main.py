@@ -648,12 +648,16 @@ def display_view_filter(filter,fault_id):
     campus_names = {x.Campus_ID: x.Campus_name for x in get_campus_info()}
     faults = ''
     fault = db.session.execute(db.select(Fault).where(Fault.Fault_ID == fault_id)).scalar()
+    if not fault:
+        flash('Fault does not exist!')
+        return redirect(url_for('display_tech_dashboard'))
+
     if filter == filters[0]:
         faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID)).scalars()
     elif filter == filters[1]:
-        faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID and Fault.Block == fault.Block)).scalars()
+        faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID , Fault.Block == fault.Block)).scalars()
     elif filter == filters[2]:
-        faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID and Fault.Block == fault.Block and Fault.Fault_Type == fault.Fault_Type)).scalars()
+        faults = db.session.execute(db.select(Fault).where(Fault.Campus_ID == fault.Campus_ID , Fault.Block == fault.Block , Fault.Fault_Type == fault.Fault_Type)).scalars()
     return render_template('view_filter.html',faults=faults,campus_names=campus_names)
 
 
